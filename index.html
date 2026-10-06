@@ -74,7 +74,8 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .greenwrap{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#2E7A49}
 #green{display:block;width:100%;height:auto}
 .inset{position:absolute;right:8px;top:8px;width:30%;border-radius:10px;overflow:hidden;border:2px solid rgba(255,255,255,.85);background:#000;cursor:pointer}
-.inset.large{position:relative;right:auto;top:auto;width:100%;border:0;border-radius:0}
+.camlarge{position:relative;width:100%;border-radius:14px;overflow:hidden;background:#000;border:1px solid var(--line)}
+
 .camwrap{position:relative;width:100%}
 .camwrap video,.camwrap canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .camwrap video{object-fit:fill}
@@ -180,7 +181,7 @@ function readGreen(start, hole, green){
 
 /* =================== state & storage =================== */
 const S = { tab:"play", players:[], rounds:[], shots:[],
-  settings:{stimp:10, voice:true, testMode:false, aimDeg:0, practiceD:3, practiceSlope:"flat"},
+  settings:{stimp:10, voice:true, testMode:false, aimDeg:0, putDir:"left", calib:null, practiceD:3, practiceSlope:"flat"},
   round:null, practice:null, last:null, statP:"all", camLarge:false, loaded:false };
 function load(){ try{ const j=JSON.parse(localStorage.getItem(LS)||"null"); if(j){ S.players=j.players||[]; S.rounds=j.rounds||[]; S.shots=j.shots||[]; Object.assign(S.settings,j.settings||{}); } }catch(e){} S.loaded=true; }
 function save(){ try{ localStorage.setItem(LS, JSON.stringify({players:S.players,rounds:S.rounds.slice(0,200),shots:S.shots.slice(-1500),settings:S.settings})); }catch(e){ toast("Mémoire du téléphone pleine : exporte puis efface des données."); } }
@@ -204,7 +205,7 @@ async function camStart(){
     proc.width=camov.width=LM.PW; proc.height=camov.height=LM.PH;
     $("#camwrap").style.aspectRatio = LM.PW+" / "+LM.PH;
     LM.running=true; LM.state="search"; LM.ball=null; LM.cand=null; LM.grays=[];
-    setAim(); setStatus("busy","Pose une balle");
+    setAim(); setStatus("busy", S.settings.calib ? "Pose la balle à sa place" : "Touche la balle sur l'image");
     try{ if(navigator.wakeLock) LM.wake=await navigator.wakeLock.request("screen"); }catch(e){}
     loop();
   }catch(e){
@@ -218,7 +219,8 @@ function camStop(){
   try{ LM.wake && LM.wake.release(); }catch(e){} LM.wake=null;
   $("#status").hidden=true;
 }
-function setAim(){ const a=(S.settings.aimDeg||0)*Math.PI/180; LM.aim={x:Math.sin(a),y:-Math.cos(a)}; }
+const DIR_BASE={up:0,left:-90,right:90};
+function setAim(){ const a=((DIR_BASE[S.settings.putDir]||0)+(S.settings.aimDeg||0))*Math.PI/180; LM.aim={x:Math.sin(a),y:-Math.cos(a)}; }
 function loop(){
   if(!LM.running) return;
   const cb=(now,meta)=>{ if(!LM.running) return; try{ frame(meta&&meta.mediaTime!=null?meta.mediaTime:performance.now()/1000); }catch(e){ console.error(e); } loop(); };
@@ -235,9 +237,11 @@ function frame(t){
   const g = old&&old.g.length===PW*PH ? old.g : new Uint8Array(PW*PH), c = old&&old.c.length===PW*PH ? old.c : new Uint8Array(PW*PH);
   for(let i=0,j=0;j<g.length;i+=4,j++){ g[j]=(d[i]*77+d[i+1]*150+d[i+2]*29)>>8; const gi=d[i+1]-((d[i]+d[i+2])>>1); c[j]=gi<0?0:gi>255?255:gi; }
   LM.grays.push({t,g,c});
+  LM.lastImg=img;
   LM.frameN++;
   if(LM.state==="search"){
-    if(LM.frameN%4===0){
+    if(!S.settings.calib){ if(LM.frameN%30===0) setStatus("busy","Touche la balle sur l'image"); }
+    else if(LM.frameN%4===0){
       const b=findBall(d,PW,PH);
       if(b && LM.cand && Math.hypot(b.x-LM.cand.x,b.y-LM.cand.y)<Math.max(2,b.r*0.35)){ LM.candN++; LM.cand=b; }
       else { LM.cand=b; LM.candN=b?1:0; }
@@ -253,7 +257,7 @@ function frame(t){
         { const k=LM.impactIdx; LM.faceFrames = k>=3 ? {A:LM.grays[k].g.slice(), Ac:LM.grays[k].c.slice(), B:LM.grays[k-3].g.slice(), Bc:LM.grays[k-3].c.slice()} : null; } LM.pts=[{x:b.x,y:b.y,t:LM.grays[LM.grays.length-2].t,start:true},{x:det.x,y:det.y,t}]; LM.lostN=0;
         setStatus("busy","Mesure…");
       } else if(mv<b.r*0.25){ b.x=b.x*0.8+det.x*0.2; b.y=b.y*0.8+det.y*0.2; }
-    } else if(t-LM.lastSeenT>1.2){ LM.state="search"; LM.ball=null; LM.cand=null; LM.candN=0; setStatus("busy","Pose une balle"); }
+    } else if(t-LM.lastSeenT>1.2){ LM.state="search"; LM.ball=null; LM.cand=null; LM.candN=0; setStatus("busy","Pose la balle à sa place"); }
   } else if(LM.state==="track"){
     const p=LM.pts, n=p.length, a=p[n-1], bq=p[n-2];
     const vx=a.x-bq.x, vy=a.y-bq.y, pred={x:a.x+vx,y:a.y+vy}, sp=Math.hypot(vx,vy);
@@ -264,29 +268,53 @@ function frame(t){
   }
   drawCamOverlay();
 }
-/* Ball finder: largest round white blob (white = high min(R,G,B)). */
+/* Ball finder, after calibration: round white blob of the calibrated size, near the calibrated spot.
+   Threshold is local (brightest pixel in the search zone), so a lamp reflection elsewhere doesn't matter. */
 function findBall(d,PW,PH){
-  const step=2, gw=Math.ceil(PW/step), gh=Math.ceil(PH/step);
-  let mx=0; for(let y=0;y<PH;y+=step) for(let x=0;x<PW;x+=step){ const w=W8(d,(y*PW+x)*4); if(w>mx) mx=w; }
-  if(mx<110) return null;
-  const T=Math.max(100,mx*0.72), mask=new Uint8Array(gw*gh);
-  for(let gy=0;gy<gh;gy++) for(let gx=0;gx<gw;gx++){ const x=gx*step,y=gy*step; if(x<PW&&y<PH&&W8(d,(y*PW+x)*4)>=T) mask[gy*gw+gx]=1; }
+  const C=S.settings.calib; if(!C) return null;
+  const cx=C.x*PW, cy=C.y*PH, cr=C.r*PW, R=Math.max(cr*10, Math.max(PW,PH)*0.22);
+  const x0=Math.max(0,Math.floor(cx-R)), x1=Math.min(PW,Math.ceil(cx+R)), y0=Math.max(0,Math.floor(cy-R)), y1=Math.min(PH,Math.ceil(cy+R));
+  let mx=0; for(let y=y0;y<y1;y++) for(let x=x0;x<x1;x++){ const w=W8(d,(y*PW+x)*4); if(w>mx) mx=w; }
+  if(mx<80) return null;
+  const T=Math.max(70,mx*0.75), gw=x1-x0, gh=y1-y0, mask=new Uint8Array(gw*gh);
+  for(let y=0;y<gh;y++) for(let x=0;x<gw;x++) if(W8(d,((y+y0)*PW+x+x0)*4)>=T) mask[y*gw+x]=1;
   let best=null; const st=[];
   for(let i=0;i<mask.length;i++){
     if(mask[i]!==1) continue;
-    let n=0,sx=0,sy=0,x0=1e9,x1=-1,y0=1e9,y1=-1; st.push(i); mask[i]=2;
-    while(st.length){ const k=st.pop(), x=k%gw, y=(k/gw)|0; n++; sx+=x; sy+=y; if(x<x0)x0=x; if(x>x1)x1=x; if(y<y0)y0=y; if(y>y1)y1=y;
-      for(const nb of [k-1,k+1,k-gw,k+gw]){ if(nb<0||nb>=mask.length) continue; if((nb===k-1&&x===0)||(nb===k+1&&x===gw-1)) continue; if(mask[nb]===1){ mask[nb]=2; st.push(nb); } } }
-    const w=x1-x0+1, h=y1-y0+1, r=Math.max(w,h)/2*step;
-    if(r<3||r>45) continue;
+    let n=0,sx=0,sy=0,bx0=1e9,bx1=-1,by0=1e9,by1=-1; st.push(i); mask[i]=2;
+    while(st.length){ const k=st.pop(), x=k%gw, y=(k/gw)|0; n++; sx+=x; sy+=y; if(x<bx0)bx0=x; if(x>bx1)bx1=x; if(y<by0)by0=y; if(y>by1)by1=y;
+      if(n>20000) break;
+      if(x>0&&mask[k-1]===1){mask[k-1]=2;st.push(k-1);} if(x<gw-1&&mask[k+1]===1){mask[k+1]=2;st.push(k+1);}
+      if(y>0&&mask[k-gw]===1){mask[k-gw]=2;st.push(k-gw);} if(y<gh-1&&mask[k+gw]===1){mask[k+gw]=2;st.push(k+gw);} }
+    st.length=0;
+    const w=bx1-bx0+1, h=by1-by0+1, r=Math.sqrt(n/Math.PI);
+    if(r<cr*0.6||r>cr*1.6) continue;
     const ar=w/h, fill=n/(Math.PI*(Math.max(w,h)/2)**2);
-    if(ar<0.7||ar>1.4||fill<0.55) continue;
-    const c={x:sx/n*step+step/2, y:sy/n*step+step/2, r:Math.sqrt(n/Math.PI)*step, w:mx};
-    // prefer lower half of the image (ball starts near the bottom) and bigger blobs
-    const score=n + (c.y/PH)*20;
-    if(!best||score>best.score){ best=c; best.score=score; }
+    if(ar<0.7||ar>1.4||fill<0.6) continue;
+    const c={x:sx/n+x0, y:sy/n+y0, r, w:mx};
+    const score=Math.hypot(c.x-cx,c.y-cy)/cr + Math.abs(r-cr)/cr*3;
+    if(!best||score<best.score){ best=c; best.score=score; }
   }
   return best;
+}
+/* One tap on the camera image: take the white blob under the finger as the ball and remember its size and place. */
+function selectBallAt(px,py){
+  const img=LM.lastImg; if(!img){ toast("La caméra démarre, réessaie."); return; }
+  const d=img.data, PW=LM.PW, PH=LM.PH, R=Math.round(Math.max(PW,PH)/14);
+  let mx=0,bx=px,by=py;
+  for(let y=Math.max(0,py-R|0);y<Math.min(PH,py+R);y++) for(let x=Math.max(0,px-R|0);x<Math.min(PW,px+R);x++){ const w=W8(d,(y*PW+x)*4)-0.6*Math.hypot(x-px,y-py); if(w>mx){mx=w;bx=x;by=y;} }
+  const peak=W8(d,(by*PW+bx)*4);
+  if(peak<70){ toast("Je ne vois pas de balle blanche à cet endroit."); return; }
+  const T=peak*0.75, seen=new Uint8Array(PW*PH), st=[by*PW+bx]; seen[st[0]]=1; let n=0,sx=0,sy=0;
+  while(st.length && n<6000){ const k=st.pop(), x=k%PW, y=(k/PW)|0; n++; sx+=x; sy+=y;
+    for(const nb of [x>0?k-1:-1, x<PW-1?k+1:-1, y>0?k-PW:-1, y<PH-1?k+PW:-1]){ if(nb>=0&&!seen[nb]&&W8(d,nb*4)>=T){ seen[nb]=1; st.push(nb); } } }
+  const r=Math.sqrt(n/Math.PI);
+  if(n>=6000||r>Math.max(PW,PH)/8){ toast("Zone trop grande : touche bien la balle, sur un fond uni."); return; }
+  if(r<2){ toast("Balle trop petite : rapproche un peu le téléphone."); return; }
+  const c={x:sx/n,y:sy/n,r,w:peak};
+  S.settings.calib={x:c.x/PW,y:c.y/PH,r:c.r/PW}; save();
+  LM.ball=c; LM.state="armed"; LM.lastSeenT=LM.lastT; setStatus("ready","Prêt : putte !");
+  toast("Balle repérée ("+Math.round(c.r*2)+" px). Tu peux putter.");
 }
 function detectAt(d,PW,PH,pred,R,T,br){
   const x0=Math.max(0,Math.floor(pred.x-R)), y0=Math.max(0,Math.floor(pred.y-R)), x1=Math.min(PW,Math.ceil(pred.x+R)), y1=Math.min(PH,Math.ceil(pred.y+R));
@@ -302,7 +330,7 @@ function detectAt(d,PW,PH,pred,R,T,br){
 function linfit(ts,vs){ const n=ts.length; let st=0,sv=0,stt=0,stv=0; for(let i=0;i<n;i++){st+=ts[i];sv+=vs[i];stt+=ts[i]*ts[i];stv+=ts[i]*vs[i];} const den=n*stt-st*st; const b=den?(n*stv-st*sv)/den:0; return {b,a:(sv-b*st)/n}; }
 function finishShot(){
   const p=LM.pts.slice(1), b=LM.ball, mmpx=BALL_R_MM/b.r;
-  LM.state="cool"; setTimeout(()=>{ if(LM.running&&LM.state==="cool"){ LM.state="search"; LM.ball=null; LM.cand=null; LM.candN=0; setStatus("busy","Pose une balle"); } },1800);
+  LM.state="cool"; setTimeout(()=>{ if(LM.running&&LM.state==="cool"){ LM.state="search"; LM.ball=null; LM.cand=null; LM.candN=0; setStatus("busy","Pose la balle à sa place"); } },1800);
   if(p.length<3){ setStatus("err","Balle perdue : recommence"); return; }
   const use=p.slice(0,Math.min(p.length,9)), t0=use[0].t;
   const fx=linfit(use.map(q=>q.t-t0),use.map(q=>q.x)), fy=linfit(use.map(q=>q.t-t0),use.map(q=>q.y));
@@ -347,10 +375,15 @@ function measureFace(b,mmpx){
   if(Math.abs(deg)>15) return null;
   return {deg, line:{a:fit.a,b:fit.b,s0:Math.min(...S2),s1:Math.max(...S2)}};
 }
+camov.addEventListener("click",e=>{
+  if(!S.camLarge){ S.camLarge=true; render(); return; }
+  const r=camov.getBoundingClientRect(); selectBallAt((e.clientX-r.left)/r.width*LM.PW,(e.clientY-r.top)/r.height*LM.PH);
+});
 function drawCamOverlay(){
   const PW=LM.PW,PH=LM.PH; octx.clearRect(0,0,PW,PH);
   octx.lineWidth=2;
   const b=LM.ball||LM.cand;
+  if(!b && S.settings.calib){ const C=S.settings.calib; octx.strokeStyle="rgba(255,255,255,.5)"; octx.setLineDash([4,4]); octx.beginPath(); octx.arc(C.x*PW,C.y*PH,C.r*PW*2.2,0,7); octx.stroke(); octx.setLineDash([]); }
   if(b){
     // aim line
     octx.strokeStyle="rgba(242,194,48,.9)"; octx.setLineDash([6,6]); octx.beginPath(); octx.moveTo(b.x,b.y); octx.lineTo(b.x+LM.aim.x*PH,b.y+LM.aim.y*PH); octx.stroke(); octx.setLineDash([]);
@@ -486,7 +519,7 @@ function render(){
 function placeCam(){
   const slot=$("#camslot"); if(!slot) return;
   slot.appendChild(CAMWRAP); if(cam.paused&&cam.srcObject) cam.play().catch(()=>{});
-  slot.className = S.camLarge ? "inset large" : "inset";
+  slot.className = S.camLarge ? "camlarge" : "inset";
 }
 function numsHtml(sh){
   return `<div class="nums">
@@ -509,7 +542,10 @@ function viewLive(){
       <div class="small" style="text-align:right">${esc(readGreen(ctx.start,ctx.hole,P.green))}<br><button class="linkbtn" data-act="newgreen">Nouveau green</button></div></div>`;
   }
   let h=`<div class="stack">${head}
-    <div class="greenwrap"><canvas id="green" aria-label="Green virtuel"></canvas><div id="verdict" class="verdict"></div>${S.settings.testMode?"":`<div id="camslot" class="inset" data-act="togglecam" title="Agrandir la caméra"></div>`}</div>
+    ${!S.settings.testMode&&S.camLarge?`<div class="stack"><div id="camslot" class="camlarge"></div>
+      <p class="small muted">${S.settings.calib?"Pose la balle dans le cercle pointillé. Touche-la pour la repérer à nouveau.":"<b>Touche la balle sur l'image</b> pour que l'appli la repère."}</p>
+      <div class="row"><button class="btn grow" data-act="togglecam">Voir le green</button>${S.settings.calib?`<button class="btn grow" data-act="recalib">Oublier la balle</button>`:""}</div></div>`:""}
+    <div class="greenwrap"><canvas id="green" aria-label="Green virtuel"></canvas><div id="verdict" class="verdict"></div>${!S.settings.testMode&&!S.camLarge?`<div id="camslot" class="inset" title="Agrandir la caméra"></div>`:""}</div>
     ${numsHtml(S.last?S.last.shot:null)}`;
   if(S.settings.testMode){
     h+=`<div class="card stack"><h3>Mode test : simule un putt</h3>
@@ -544,10 +580,11 @@ function playersPicker(sel, act){
 }
 function setupTip(){
   return `<div class="tip"><b>Installer le téléphone</b><ul>
-    <li>Fixe-le à <b>80 cm – 1 m de hauteur</b>, écran vers le haut, caméra vers le sol (trépied avec bras ou perche).</li>
-    <li>Place-le <b>au-dessus de la ligne de putt, 20 à 40 cm devant la balle</b>, pour que ta tête ne gêne pas.</li>
-    <li>Le <b>haut du téléphone pointe vers la cible</b>. La balle doit apparaître dans le bas de l'image.</li>
-    <li>Utilise une balle blanche, sur un tapis uni et bien éclairé. Pose la balle : quand le cercle devient vert, putte.</li></ul></div>`;
+    <li>Fixe-le <b>en face de toi, de l'autre côté de la ligne de putt</b>, à environ <b>80 cm – 1 m de haut</b>, caméra vers le sol, écran tourné vers toi.</li>
+    <li>Sur l'image, la balle part <b>vers la gauche</b> si tu es droitier (vers la droite si tu es gaucher) : choisis le sens dans Réglages.</li>
+    <li>Pose la balle <b>près du bord de l'image opposé à la cible</b>, pour qu'elle reste visible le plus longtemps.</li>
+    <li>Au premier putt, <b>touche la balle sur l'image</b> : l'appli retient sa taille et sa place. Ensuite, repose chaque balle au même endroit.</li>
+    <li>Balle blanche, tapis uni, bonne lumière, sans objet blanc près de la balle.</li></ul></div>`;
 }
 function viewPlaySetup(){
   if(!S.players.length) return firstPlayer();
@@ -609,8 +646,14 @@ function viewSettings(){
   return `<h2 style="margin-top:4px">Réglages</h2><div class="stack">
   <div class="card stack"><h3>Vitesse du green (Stimp)</h3><div class="stepper"><button data-act="stimp" data-v="-0.5" aria-label="Moins rapide">−</button><b>${nf(st.stimp,1)}</b><button data-act="stimp" data-v="0.5" aria-label="Plus rapide">+</button></div>
     <p class="small muted">8 = green lent, 10 = moyen, 12 = rapide. Sert à calculer la distance parcourue.</p></div>
+  <div class="card stack"><h3>Sens du putt sur l'image</h3><div class="row">
+    <button class="chip" data-act="putdir" data-v="left" aria-pressed="${st.putDir==="left"}">← Vers la gauche</button>
+    <button class="chip" data-act="putdir" data-v="right" aria-pressed="${st.putDir==="right"}">Vers la droite →</button>
+    <button class="chip" data-act="putdir" data-v="up" aria-pressed="${st.putDir==="up"}">↑ Vers le haut</button></div>
+    <p class="small muted">Téléphone en face de toi : <b>vers la gauche</b> pour un droitier, <b>vers la droite</b> pour un gaucher. <b>Vers le haut</b> si le téléphone est derrière la balle, haut du téléphone vers la cible.</p></div>
   <div class="card stack"><h3>Correction de visée</h3><div class="stepper"><button data-act="aim" data-v="-0.5" aria-label="Tourner à gauche">−</button><b>${dirTxt(st.aimDeg)}</b><button data-act="aim" data-v="0.5" aria-label="Tourner à droite">+</button></div>
-    <p class="small muted">Si le téléphone n'est pas parfaitement aligné sur ta cible, tourne la ligne jaune affichée sur l'image de la caméra jusqu'à ce qu'elle pointe vers la cible.</p></div>
+    <p class="small muted">Si le téléphone n'est pas parfaitement parallèle à ta ligne, tourne la ligne jaune affichée sur l'image de la caméra jusqu'à ce qu'elle pointe vers la cible.</p>
+    <button class="btn" data-act="recalib">Oublier la balle repérée</button></div>
   <div class="card switch"><label for="voice"><h3>Annonce vocale</h3><p class="small muted">Le téléphone annonce la vitesse, la direction et le résultat.</p></label><input type="checkbox" id="voice" ${st.voice?"checked":""}></div>
   <div class="card switch"><label for="testmode"><h3>Mode test sans caméra</h3><p class="small muted">Pour essayer le jeu avec des curseurs.</p></label><input type="checkbox" id="testmode" ${st.testMode?"checked":""}></div>
   <div class="card stack"><h3>Joueurs</h3>
@@ -643,7 +686,7 @@ function onAct(e){
     case "delplayer": S.players=S.players.filter(p=>p.id!==el.dataset.id); S.confirmDel=null; save(); render(); break;
     case "setupplayer": { const id=el.dataset.id; S.setupP = S.setupP.includes(id)? S.setupP.filter(x=>x!==id) : S.players.map(p=>p.id).filter(x=>S.setupP.includes(x)||x===id); render(); break; }
     case "setn": S.setupN=+el.dataset.n; render(); break;
-    case "startround": S.round=newRound(S.setupP,S.setupN); S.rounds.unshift(S.round); S.last=null; S.showCard=false; save(); render(); break;
+    case "startround": if(!S.settings.calib) S.camLarge=true; S.round=newRound(S.setupP,S.setupN); S.rounds.unshift(S.round); S.last=null; S.showCard=false; save(); render(); break;
     case "replay": S.round=newRound(S.round.players,S.round.holes.length); S.rounds.unshift(S.round); S.last=null; save(); render(); break;
     case "closeround": S.round=null; render(); break;
     case "quitround": S.round=null; S.last=null; render(); break;
@@ -651,10 +694,12 @@ function onAct(e){
     case "pd": st.practiceD=Math.max(0.5,Math.min(25,st.practiceD+(+el.dataset.v))); save(); render(); break;
     case "pslope": st.practiceSlope=el.dataset.v; save(); render(); break;
     case "practicep": S.practiceP=el.dataset.id; render(); break;
-    case "startpractice": S.practice={D:st.practiceD, green:newGreen(Math.random, st.practiceSlope==="flat")}; if(!S.practiceP) S.practiceP=S.players[0].id; S.last=null; render(); break;
+    case "startpractice": if(!st.calib) S.camLarge=true; S.practice={D:st.practiceD, green:newGreen(Math.random, st.practiceSlope==="flat")}; if(!S.practiceP) S.practiceP=S.players[0].id; S.last=null; render(); break;
     case "newgreen": S.practice.green=newGreen(Math.random, st.practiceSlope==="flat"); S.last=null; render(); break;
     case "quitpractice": S.practice=null; S.last=null; render(); break;
-    case "togglecam": S.camLarge=!S.camLarge; placeCam(); break;
+    case "togglecam": S.camLarge=!S.camLarge; render(); break;
+    case "recalib": S.settings.calib=null; save(); LM.ball=null; LM.cand=null; LM.candN=0; if(LM.running){ LM.state="search"; setStatus("busy","Touche la balle sur l'image"); } render(); break;
+    case "putdir": st.putDir=el.dataset.v; setAim(); save(); render(); break;
     case "testshot": { const v=S.tv||1.8, d=S.td||0; const face=d/0.85+(Math.random()-0.5)*0.6; onShot({v, dir:d, face, faceMeasured:false}); break; }
     case "stimp": st.stimp=Math.max(6,Math.min(15,st.stimp+(+el.dataset.v))); save(); render(); break;
     case "aim": st.aimDeg=Math.max(-15,Math.min(15,st.aimDeg+(+el.dataset.v))); setAim(); save(); render(); break;
