@@ -219,7 +219,7 @@ function camStop(){
   try{ LM.wake && LM.wake.release(); }catch(e){} LM.wake=null;
   $("#status").hidden=true;
 }
-const DIR_BASE={up:0,left:-90,right:90};
+const DIR_BASE={up:0,down:180,left:-90,right:90};
 function setAim(){ const a=((DIR_BASE[S.settings.putDir]||0)+(S.settings.aimDeg||0))*Math.PI/180; LM.aim={x:Math.sin(a),y:-Math.cos(a)}; }
 function loop(){
   if(!LM.running) return;
@@ -245,26 +245,42 @@ function frame(t){
       const b=findBall(d,PW,PH);
       if(b && LM.cand && Math.hypot(b.x-LM.cand.x,b.y-LM.cand.y)<Math.max(2,b.r*0.35)){ LM.candN++; LM.cand=b; }
       else { LM.cand=b; LM.candN=b?1:0; }
-      if(LM.candN>=6){ LM.ball=LM.cand; LM.state="armed"; LM.lastSeenT=t; setStatus("ready","Prêt : putte !"); }
+      if(LM.candN>=6){ LM.ball=LM.cand; LM.state="armed"; LM.lastSeenT=t; LM.bg=null; LM.goneN=0; setStatus("ready","Prêt : putte ! ("+Math.round(LM.fps)+" images/s)"); }
     }
   } else if(LM.state==="armed"){
-    const b=LM.ball, det=detectAt(d,PW,PH,b,b.r*2.2,b.w*0.6,b.r);
-    if(det){
-      LM.lastSeenT=t;
-      const mv=Math.hypot(det.x-b.x,det.y-b.y);
-      if(mv>b.r*0.55){
-        LM.state="track"; LM.impactIdx=LM.grays.length-2;
-        { const k=LM.impactIdx; LM.faceFrames = k>=3 ? {A:LM.grays[k].g.slice(), Ac:LM.grays[k].c.slice(), B:LM.grays[k-3].g.slice(), Bc:LM.grays[k-3].c.slice()} : null; } LM.pts=[{x:b.x,y:b.y,t:LM.grays[LM.grays.length-2].t,start:true},{x:det.x,y:det.y,t}]; LM.lostN=0;
+    const b=LM.ball, T=b.w*0.7;
+    // background whiteness, refreshed while the ball sits still (static white marks are then ignored)
+    const pres=presence(d,PW,b,T);
+    if(pres>0.45 && (!LM.bg || LM.bg.length!==PW*PH || LM.frameN%20===0)){ if(!LM.bg||LM.bg.length!==PW*PH) LM.bg=new Uint8Array(PW*PH); const bg=LM.bg; for(let i=0,j=0;j<bg.length;i+=4,j++) bg[j]=Math.min(d[i],d[i+1],d[i+2]); }
+    if(pres>0.45){
+      LM.lastSeenT=t; LM.goneN=0;
+      if(LM.frameN%10===0){ const det=detectAt(d,PW,PH,b,b.r*1.2,T,b.r); if(det&&Math.hypot(det.x-b.x,det.y-b.y)<b.r*0.4){ b.x=b.x*0.7+det.x*0.3; b.y=b.y*0.7+det.y*0.3; } }
+    } else {
+      LM.goneN=(LM.goneN||0)+1;
+      if(LM.goneN===1){ const k=LM.grays.length-3; LM.faceFrames = k>=3 ? {A:LM.grays[k].g.slice(), Ac:LM.grays[k].c.slice(), B:LM.grays[k-3].g.slice(), Bc:LM.grays[k-3].c.slice()} : null; LM.goneT=LM.grays[LM.grays.length-2].t; }
+      const first=findAhead(d,PW,PH,b,t-LM.goneT+1/30);
+      if(first){
+        LM.state="track"; LM.pts=[{x:b.x,y:b.y,t:LM.goneT,start:true},{x:first.x,y:first.y,t}]; LM.lostN=0;
         setStatus("busy","Mesure…");
-      } else if(mv<b.r*0.25){ b.x=b.x*0.8+det.x*0.2; b.y=b.y*0.8+det.y*0.2; }
-    } else if(t-LM.lastSeenT>1.2){ LM.state="search"; LM.ball=null; LM.cand=null; LM.candN=0; setStatus("busy","Pose la balle à sa place"); }
+      } else if(LM.goneN>4){ // not a putt (hand, shadow): wait for the ball to come back
+        if(t-LM.lastSeenT>1.2){ LM.state="search"; LM.ball=null; LM.cand=null; LM.candN=0; setStatus("busy","Pose la balle à sa place"); }
+      }
+    }
   } else if(LM.state==="track"){
-    const p=LM.pts, n=p.length, a=p[n-1], bq=p[n-2];
-    const vx=a.x-bq.x, vy=a.y-bq.y, pred={x:a.x+vx,y:a.y+vy}, sp=Math.hypot(vx,vy);
-    const det=detectAt(d,PW,PH,pred,Math.max(LM.ball.r*3,sp*1.2+4),LM.ball.w*0.55,LM.ball.r);
-    if(det){ p.push({x:det.x,y:det.y,t}); LM.lostN=0; } else LM.lostN++;
-    const out = pred.x<LM.ball.r||pred.y<LM.ball.r||pred.x>PW-LM.ball.r||pred.y>PH-LM.ball.r;
-    if(p.length>=12 || LM.lostN>=3 || out || t-p[0].t>0.6) finishShot();
+    const p=LM.pts, n=p.length, last=p[n-1], b=LM.ball, a=LM.aim;
+    let vx,vy,dt;
+    if(n>=3){ const q=p[n-2]; dt=(last.t-q.t)||1/30; vx=(last.x-q.x)/dt; vy=(last.y-q.y)/dt; }
+    else { dt=(last.t-p[0].t)||1/30; vx=(last.x-p[0].x)/dt; vy=(last.y-p[0].y)/dt; }
+    const step=t-last.t, pred={x:last.x+vx*step,y:last.y+vy*step}, sp=Math.hypot(vx,vy)*step;
+    const blobs=findBlobs(d,PW,PH,pred,Math.max(b.r*3,sp*0.7+b.r*2),b.w*0.55,b.r);
+    let best=null;
+    for(const c of blobs){
+      const fw=(c.x-last.x)*a.x+(c.y-last.y)*a.y; if(fw<b.r*0.2) continue; // must keep moving forward
+      const dd=Math.hypot(c.x-pred.x,c.y-pred.y); if(!best||dd<best.dd){ best=c; best.dd=dd; }
+    }
+    if(best){ p.push({x:best.x,y:best.y,t}); LM.lostN=0; } else LM.lostN++;
+    const out = pred.x<b.r||pred.y<b.r||pred.x>PW-b.r||pred.y>PH-b.r;
+    if(p.length>=10 || LM.lostN>=2 || out || t-p[0].t>0.7) finishShot();
   }
   drawCamOverlay();
 }
@@ -313,8 +329,46 @@ function selectBallAt(px,py){
   if(r<2){ toast("Balle trop petite : rapproche un peu le téléphone."); return; }
   const c={x:sx/n,y:sy/n,r,w:peak};
   S.settings.calib={x:c.x/PW,y:c.y/PH,r:c.r/PW}; save();
-  LM.ball=c; LM.state="armed"; LM.lastSeenT=LM.lastT; setStatus("ready","Prêt : putte !");
+  LM.ball=c; LM.state="armed"; LM.lastSeenT=LM.lastT; LM.bg=null; setStatus("ready","Prêt : putte !");
   toast("Balle repérée ("+Math.round(c.r*2)+" px). Tu peux putter.");
+}
+/* Share of the ball's disk that is still white: drops when the ball leaves its spot. */
+function presence(d,PW,b,T){
+  const R=Math.max(1.5,b.r*0.7); let n=0,k=0;
+  for(let y=Math.round(b.y-R);y<=b.y+R;y++) for(let x=Math.round(b.x-R);x<=b.x+R;x++){ if((x-b.x)**2+(y-b.y)**2>R*R) continue; n++; if(W8(d,(y*PW+x)*4)>=T) k++; }
+  return n?k/n:0;
+}
+/* White blobs (new compared with the background) inside a square window. Blurred balls are accepted (streaks). */
+function findBlobs(d,PW,PH,c,R,T,br){
+  const x0=Math.max(0,Math.floor(c.x-R)), y0=Math.max(0,Math.floor(c.y-R)), x1=Math.min(PW,Math.ceil(c.x+R)), y1=Math.min(PH,Math.ceil(c.y+R));
+  const gw=x1-x0, gh=y1-y0; if(gw<2||gh<2) return [];
+  const bg=LM.bg, m=new Uint8Array(gw*gh);
+  for(let y=0;y<gh;y++) for(let x=0;x<gw;x++){ const i=(y+y0)*PW+x+x0, w=W8(d,i*4); if(w>=T && (!bg || w-bg[i]>=25)) m[y*gw+x]=1; }
+  const out=[], st=[], A=Math.PI*br*br;
+  for(let i=0;i<m.length;i++){
+    if(m[i]!==1) continue; let n=0,sx=0,sy=0; st.push(i); m[i]=2;
+    while(st.length){ const k=st.pop(), x=k%gw, y=(k/gw)|0; n++; sx+=x; sy+=y;
+      if(x>0&&m[k-1]===1){m[k-1]=2;st.push(k-1);} if(x<gw-1&&m[k+1]===1){m[k+1]=2;st.push(k+1);}
+      if(y>0&&m[k-gw]===1){m[k-gw]=2;st.push(k-gw);} if(y<gh-1&&m[k+gw]===1){m[k+gw]=2;st.push(k+gw);} }
+    if(n<A*0.25||n>A*5) continue;
+    out.push({x:sx/n+x0,y:sy/n+y0,n});
+  }
+  return out;
+}
+/* First sighting after the ball left its spot: look only in a cone ahead (never behind, where the putter is),
+   within what a ball can travel (max 6 m/s), and take the blob farthest ahead: the ball always outruns the putter. */
+function findAhead(d,PW,PH,b,el){
+  const mmpx=BALL_R_MM/b.r, maxF=Math.max(b.r*3, 6000*el/mmpx+b.r*2), a=LM.aim, r={x:-a.y,y:a.x};
+  const c={x:b.x+a.x*maxF/2,y:b.y+a.y*maxF/2};
+  const blobs=findBlobs(d,PW,PH,c,maxF/2+b.r*2,b.w*0.55,b.r);
+  let best=null;
+  for(const q of blobs){
+    const f=(q.x-b.x)*a.x+(q.y-b.y)*a.y, s=(q.x-b.x)*r.x+(q.y-b.y)*r.y;
+    if(f<b.r*0.5||f>maxF) continue;
+    if(Math.abs(s)>f*0.45+b.r) continue; // within ~25° of the aim line
+    if(!best||f>best.f){ best=q; best.f=f; }
+  }
+  return best;
 }
 function detectAt(d,PW,PH,pred,R,T,br){
   const x0=Math.max(0,Math.floor(pred.x-R)), y0=Math.max(0,Math.floor(pred.y-R)), x1=Math.min(PW,Math.ceil(pred.x+R)), y1=Math.min(PH,Math.ceil(pred.y+R));
@@ -331,7 +385,7 @@ function linfit(ts,vs){ const n=ts.length; let st=0,sv=0,stt=0,stv=0; for(let i=
 function finishShot(){
   const p=LM.pts.slice(1), b=LM.ball, mmpx=BALL_R_MM/b.r;
   LM.state="cool"; setTimeout(()=>{ if(LM.running&&LM.state==="cool"){ LM.state="search"; LM.ball=null; LM.cand=null; LM.candN=0; setStatus("busy","Pose la balle à sa place"); } },1800);
-  if(p.length<3){ setStatus("err","Balle perdue : recommence"); return; }
+  if(p.length<2){ setStatus("err","Balle perdue : recommence"); return; }
   const use=p.slice(0,Math.min(p.length,9)), t0=use[0].t;
   const fx=linfit(use.map(q=>q.t-t0),use.map(q=>q.x)), fy=linfit(use.map(q=>q.t-t0),use.map(q=>q.y));
   const vpx=Math.hypot(fx.b,fy.b), v=vpx*mmpx/1000;
@@ -350,7 +404,7 @@ function measureFace(b,mmpx){
   const FF=LM.faceFrames; if(!FF) return null;
   const {A,B,Ac,Bc}=FF, PW=LM.PW, PH=LM.PH;
   const a=LM.aim, r={x:-a.y,y:a.x}, pxmm=1/mmpx;
-  const sMax=70*pxmm, fMin=-(BALL_R_MM+110)*pxmm, fMax=-(BALL_R_MM-6)*pxmm;
+  const sMax=70*pxmm, fMin=-(BALL_R_MM+110)*pxmm, fMax=-(BALL_R_MM*0.9)*pxmm;
   const nb=Math.max(8,Math.round(2*sMax/ (2*pxmm))), bins=new Float32Array(nb).fill(-1e9), cnt=new Uint16Array(nb);
   const R=Math.ceil(Math.hypot(sMax,fMin));
   for(let y=Math.max(0,Math.floor(b.y-R));y<Math.min(PH,b.y+R);y++) for(let x=Math.max(0,Math.floor(b.x-R));x<Math.min(PW,b.x+R);x++){
@@ -647,10 +701,11 @@ function viewSettings(){
   <div class="card stack"><h3>Vitesse du green (Stimp)</h3><div class="stepper"><button data-act="stimp" data-v="-0.5" aria-label="Moins rapide">−</button><b>${nf(st.stimp,1)}</b><button data-act="stimp" data-v="0.5" aria-label="Plus rapide">+</button></div>
     <p class="small muted">8 = green lent, 10 = moyen, 12 = rapide. Sert à calculer la distance parcourue.</p></div>
   <div class="card stack"><h3>Sens du putt sur l'image</h3><div class="row">
+    <button class="chip" data-act="putdir" data-v="up" aria-pressed="${st.putDir==="up"}">↑ Vers le haut</button>
+    <button class="chip" data-act="putdir" data-v="down" aria-pressed="${st.putDir==="down"}">↓ Vers le bas</button>
     <button class="chip" data-act="putdir" data-v="left" aria-pressed="${st.putDir==="left"}">← Vers la gauche</button>
-    <button class="chip" data-act="putdir" data-v="right" aria-pressed="${st.putDir==="right"}">Vers la droite →</button>
-    <button class="chip" data-act="putdir" data-v="up" aria-pressed="${st.putDir==="up"}">↑ Vers le haut</button></div>
-    <p class="small muted">Téléphone en face de toi : <b>vers la gauche</b> pour un droitier, <b>vers la droite</b> pour un gaucher. <b>Vers le haut</b> si le téléphone est derrière la balle, haut du téléphone vers la cible.</p></div>
+    <button class="chip" data-act="putdir" data-v="right" aria-pressed="${st.putDir==="right"}">Vers la droite →</button></div>
+    <p class="small muted">Téléphone posé <b>dans la longueur, dans le sens du putt</b> : <b>vers le haut</b> si le haut du téléphone pointe vers la cible, <b>vers le bas</b> s'il pointe vers toi. <b>Gauche / droite</b> : téléphone posé en travers de la ligne.</p></div>
   <div class="card stack"><h3>Correction de visée</h3><div class="stepper"><button data-act="aim" data-v="-0.5" aria-label="Tourner à gauche">−</button><b>${dirTxt(st.aimDeg)}</b><button data-act="aim" data-v="0.5" aria-label="Tourner à droite">+</button></div>
     <p class="small muted">Si le téléphone n'est pas parfaitement parallèle à ta ligne, tourne la ligne jaune affichée sur l'image de la caméra jusqu'à ce qu'elle pointe vers la cible.</p>
     <button class="btn" data-act="recalib">Oublier la balle repérée</button></div>
@@ -699,7 +754,7 @@ function onAct(e){
     case "quitpractice": S.practice=null; S.last=null; render(); break;
     case "togglecam": S.camLarge=!S.camLarge; render(); break;
     case "recalib": S.settings.calib=null; save(); LM.ball=null; LM.cand=null; LM.candN=0; if(LM.running){ LM.state="search"; setStatus("busy","Touche la balle sur l'image"); } render(); break;
-    case "putdir": st.putDir=el.dataset.v; setAim(); save(); render(); break;
+    case "putdir": st.putDir=el.dataset.v; st.calib=null; setAim(); save(); render(); break;
     case "testshot": { const v=S.tv||1.8, d=S.td||0; const face=d/0.85+(Math.random()-0.5)*0.6; onShot({v, dir:d, face, faceMeasured:false}); break; }
     case "stimp": st.stimp=Math.max(6,Math.min(15,st.stimp+(+el.dataset.v))); save(); render(); break;
     case "aim": st.aimDeg=Math.max(-15,Math.min(15,st.aimDeg+(+el.dataset.v))); setAim(); save(); render(); break;
