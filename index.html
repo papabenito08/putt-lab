@@ -80,6 +80,11 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .camwrap video,.camwrap canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .camwrap video{object-fit:fill}
 .verdict{position:absolute;left:12px;bottom:10px;font-family:var(--display);font-size:34px;font-weight:700;color:#fff;text-transform:uppercase;text-shadow:0 2px 8px rgba(0,0,0,.45)}
+.impgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+.impimg{width:100%;border-radius:10px;display:block}
+.impside{display:grid;grid-template-columns:minmax(0,170px) 1fr;gap:12px;align-items:center}
+.impsvg{width:100%;color:var(--ink);background:var(--surface2);border-radius:10px}
+@media(max-width:420px){.impgrid{grid-template-columns:1fr}}
 .nums{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .num{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 8px 10px;min-width:0}
 .num span{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -191,7 +196,7 @@ const pname = id => (S.players.find(p=>p.id===id)||{name:"Joueur"}).name;
 const CAMWRAP=$("#camwrap"), cam=$("#cam"), camov=$("#camov"), octx=camov.getContext("2d");
 const proc=document.createElement("canvas"), pctx=proc.getContext("2d",{willReadFrequently:true});
 const LM = { stream:null, running:false, state:"off", PW:0, PH:0, ball:null, cand:null, candN:0, frameN:0,
-  grays:[], pts:[], lastSeenT:0, impactIdx:-1, onShot:null, aim:{x:0,y:-1}, lostN:0, lastT:0, fps:0, err:"" };
+  grays:[], imgs:[], pts:[], lastSeenT:0, impactIdx:-1, onShot:null, aim:{x:0,y:-1}, lostN:0, lastT:0, fps:0, err:"" };
 function setStatus(cls, txt){ const s=$("#status"); s.hidden=false; s.className="status "+cls; $("#statustxt").textContent=txt; }
 async function camStart(){
   if(S.settings.testMode){ setStatus("ready","Mode test (sans caméra)"); return; }
@@ -237,6 +242,7 @@ function frame(t){
   const g = old&&old.g.length===PW*PH ? old.g : new Uint8Array(PW*PH), c = old&&old.c.length===PW*PH ? old.c : new Uint8Array(PW*PH);
   for(let i=0,j=0;j<g.length;i+=4,j++){ g[j]=(d[i]*77+d[i+1]*150+d[i+2]*29)>>8; const gi=d[i+1]-((d[i]+d[i+2])>>1); c[j]=gi<0?0:gi>255?255:gi; }
   LM.grays.push({t,g,c});
+  LM.imgs.push(img); if(LM.imgs.length>LM.grays.length) LM.imgs.splice(0,LM.imgs.length-LM.grays.length);
   LM.lastImg=img;
   LM.frameN++;
   if(LM.state==="search"){
@@ -257,7 +263,7 @@ function frame(t){
       if(LM.frameN%10===0){ const det=detectAt(d,PW,PH,b,b.r*1.2,T,b.r); if(det&&Math.hypot(det.x-b.x,det.y-b.y)<b.r*0.4){ b.x=b.x*0.7+det.x*0.3; b.y=b.y*0.7+det.y*0.3; } }
     } else {
       LM.goneN=(LM.goneN||0)+1;
-      if(LM.goneN===1){ const k=LM.grays.length-3; LM.faceFrames = k>=3 ? {A:LM.grays[k].g.slice(), Ac:LM.grays[k].c.slice(), B:LM.grays[k-3].g.slice(), Bc:LM.grays[k-3].c.slice()} : null; LM.goneT=LM.grays[LM.grays.length-2].t; }
+      if(LM.goneN===1){ const k=LM.grays.length-3; LM.impactImg = k>=0 ? LM.imgs[k] : null; LM.faceFrames = k>=3 ? {A:LM.grays[k].g.slice(), Ac:LM.grays[k].c.slice(), B:LM.grays[k-3].g.slice(), Bc:LM.grays[k-3].c.slice()} : null; LM.goneT=LM.grays[LM.grays.length-2].t; }
       const first=findAhead(d,PW,PH,b,t-LM.goneT+1/30);
       if(first){
         LM.state="track"; LM.pts=[{x:b.x,y:b.y,t:LM.goneT,start:true},{x:first.x,y:first.y,t}]; LM.lostN=0;
@@ -396,10 +402,60 @@ function finishShot(){
   LM.lastShot={v,dir,face, path:LM.pts.map(q=>({x:q.x,y:q.y}))};
   if(v<0.15||v>8||Math.abs(dir)>25){ setStatus("err","Mesure douteuse : recommence"); return; }
   setStatus("ready","Putt mesuré");
-  LM.onShot && LM.onShot({v, dir, face:face?face.deg:dir/0.85, faceMeasured:!!face});
+  const fdeg=face?face.deg:dir/0.85; let snap=null; try{ snap=makeSnap(b,mmpx,face,dir,fdeg); }catch(e){}
+  LM.onShot && LM.onShot({v, dir, face:fdeg, faceMeasured:!!face, snap});
 }
 /* Putter face: in the frame just before impact, pixels that changed vs. 3 frames earlier = moving putter head.
    For each lateral slice behind the ball we keep the most forward moving pixel (the face), then fit a line. */
+/* Freeze-frame at impact, turned so the aim line points up, with the face line and the ball's start line drawn on it. */
+function makeSnap(b,mmpx,face,dir,fdeg){
+  const img=LM.impactImg; if(!img) return null;
+  const PW=LM.PW, PH=LM.PH, pxmm=1/mmpx, a=LM.aim, r={x:-a.y,y:a.x};
+  const N=360, half=(BALL_R_MM+150)*pxmm, k=N/(2*half), fC=-45*pxmm;
+  const C={x:b.x+a.x*fC, y:b.y+a.y*fC};
+  const src=document.createElement("canvas"); src.width=PW; src.height=PH; src.getContext("2d").putImageData(img,0,0);
+  const cv=document.createElement("canvas"); cv.width=N; cv.height=N; const x=cv.getContext("2d");
+  x.fillStyle="#222"; x.fillRect(0,0,N,N);
+  x.setTransform(k*r.x, -k*a.x, k*r.y, -k*a.y, N/2-k*(r.x*C.x+r.y*C.y), N/2+k*(a.x*C.x+a.y*C.y));
+  x.drawImage(src,0,0); x.setTransform(1,0,0,1,0,0);
+  const P=(f,sv)=>[N/2+k*sv, N/2-k*(f-fC)];
+  const line=(p,q,col,w,dash)=>{ x.strokeStyle=col; x.lineWidth=w; x.setLineDash(dash||[]); x.beginPath(); x.moveTo(p[0],p[1]); x.lineTo(q[0],q[1]); x.stroke(); x.setLineDash([]); };
+  const L=2*half;
+  line(P(0,0),P(L,0),"rgba(255,255,255,.85)",2,[7,6]);                       // aim line
+  const dr=dir*Math.PI/180; line(P(0,0),P(L*Math.cos(dr),L*Math.sin(dr)),"#FF5A3C",3);  // ball start line
+  if(face){ const l=face.line, ext=(l.s1-l.s0)*0.25, s0=l.s0-ext, s1=l.s1+ext;
+    line(P(l.a+l.b*s0,s0),P(l.a+l.b*s1,s1),"#FFD23C",4);
+    const sm=(l.s0+l.s1)/2, fm=l.a+l.b*sm, fr=fdeg*Math.PI/180, n=60*pxmm;
+    line(P(fm,sm),P(fm+n*Math.cos(fr),sm+n*Math.sin(fr)),"#FFD23C",2); }
+  x.strokeStyle="#fff"; x.lineWidth=2; x.beginPath(); const pb=P(0,0); x.arc(pb[0],pb[1],b.r*k+3,0,7); x.stroke();
+  x.fillStyle="rgba(0,0,0,.6)"; x.fillRect(0,N-34,N,34); x.font="600 15px system-ui,sans-serif"; x.textBaseline="middle";
+  x.fillStyle="#FFD23C"; x.fillText("Face "+dirTxt(fdeg)+(face?"":" (estimée)"),10,N-17);
+  x.fillStyle="#FF8A70"; const t2="Balle "+dirTxt(dir); x.fillText(t2,N-10-x.measureText(t2).width,N-17);
+  return cv.toDataURL("image/jpeg",0.82);
+}
+function impactSvg(sh){
+  const X=5, f=sh.face*X*Math.PI/180, d=sh.dir*X*Math.PI/180, cx=100, by=150;
+  const pt=(ang,len)=>[cx+len*Math.sin(ang), by-len*Math.cos(ang)];
+  const [ex,ey]=pt(d,125), [nx,ny]=pt(f,70);
+  const hx=46*Math.cos(f), hy=46*Math.sin(f), py=by+20;
+  const ph=[[cx-hx,py-hy],[cx+hx,py+hy]];
+  return `<svg viewBox="0 0 200 200" class="impsvg" role="img" aria-label="Face ${dirTxt(sh.face)}, balle ${dirTxt(sh.dir)}">
+    <line x1="${cx}" y1="190" x2="${cx}" y2="8" stroke="currentColor" stroke-opacity=".45" stroke-width="1.5" stroke-dasharray="5 5"/>
+    <line x1="${ph[0][0]}" y1="${ph[0][1]}" x2="${ph[1][0]}" y2="${ph[1][1]}" stroke="#E0A800" stroke-width="9" stroke-linecap="round"/>
+    <line x1="${cx}" y1="${py}" x2="${nx}" y2="${ny+20}" stroke="#E0A800" stroke-width="2"/>
+    <line x1="${cx}" y1="${by}" x2="${ex}" y2="${ey}" stroke="#E5533A" stroke-width="3"/>
+    <circle cx="${ex}" cy="${ey}" r="4" fill="#E5533A"/>
+    <circle cx="${cx}" cy="${by}" r="9" fill="#fff" stroke="currentColor" stroke-opacity=".5"/>
+  </svg>`;
+}
+function impactHtml(){
+  const I=S.lastImpact; if(!I) return "";
+  return `<div class="card stack"><h3>Impact</h3><div class="impgrid">
+    ${I.snap?`<img class="impimg" src="${I.snap}" alt="Arrêt sur image au moment de l'impact">`:""}
+    <div class="impside">${impactSvg(I)}<div class="stack" style="gap:6px">
+      <div class="small"><b style="color:#E0A800">Face ${dirTxt(I.face)}</b>${I.faceMeasured?"":' <span class="muted">(estimée)</span>'}<br><b style="color:#E5533A">Balle ${dirTxt(I.dir)}</b></div>
+      <div class="small muted">Vu de dessus, cible en haut. Angles agrandis ×5 sur le dessin.</div></div></div></div></div>`;
+}
 function measureFace(b,mmpx){
   const FF=LM.faceFrames; if(!FF) return null;
   const {A,B,Ac,Bc}=FF, PW=LM.PW, PH=LM.PH;
@@ -461,6 +517,7 @@ function roundCtx(){
   return {hole:{x:0,y:h.D}, start:R.ball, green:h.green, pid:R.players[R.pi]};
 }
 function onShot(shot){
+  const snap=shot.snap; delete shot.snap; S.lastImpact={snap, face:shot.face, dir:shot.dir, faceMeasured:shot.faceMeasured};
   shot.t=Date.now(); shot.stimp=S.settings.stimp; shot.flat=flatDistance(shot.v,S.settings.stimp);
   let ctx, mode;
   if(S.tab==="play" && S.round && !S.round.done){ ctx=roundCtx(); mode="parcours"; shot.p=ctx.pid; }
@@ -713,7 +770,8 @@ function viewLive(){
       <p class="small muted">${S.settings.calib?"Pose la balle dans le cercle pointillé. Touche-la pour la repérer à nouveau.":"<b>Touche la balle sur l'image</b> pour que l'appli la repère."}</p>
       <div class="row"><button class="btn grow" data-act="togglecam">Voir le green</button>${S.settings.calib?`<button class="btn grow" data-act="recalib">Oublier la balle</button>`:""}</div></div>`:""}
     <div class="greenwrap"><canvas id="green" aria-label="Green virtuel"></canvas><div id="verdict" class="verdict"></div>${!S.settings.testMode&&!S.camLarge?`<div id="camslot" class="inset" title="Agrandir la caméra"></div>`:""}</div>
-    ${numsHtml(S.last?S.last.shot:null)}`;
+    ${numsHtml(S.last?S.last.shot:null)}
+    ${impactHtml()}`;
   if(S.settings.testMode){
     h+=`<div class="card stack"><h3>Mode test : simule un putt</h3>
       <label class="small muted" for="tv">Vitesse de la balle : <b id="tvv">${nf(S.tv||1.8,2)} m/s</b></label><input type="range" id="tv" min="0.3" max="4" step="0.05" value="${S.tv||1.8}">
@@ -890,14 +948,14 @@ function onAct(e){
     case "startround": if(!S.settings.calib) S.camLarge=true; S.round=newRound(S.setupP,S.setupN); S.rounds.unshift(S.round); S.last=null; S.showCard=false; save(); render(); break;
     case "replay": S.round=newRound(S.round.players,S.round.holes.length); S.rounds.unshift(S.round); S.last=null; save(); render(); break;
     case "closeround": S.round=null; render(); break;
-    case "quitround": S.round=null; S.last=null; render(); break;
+    case "quitround": S.round=null; S.last=null; S.lastImpact=null; render(); break;
     case "scorecard": S.showCard=!S.showCard; render(); break;
     case "pd": st.practiceD=Math.max(0.5,Math.min(25,st.practiceD+(+el.dataset.v))); save(); render(); break;
     case "pslope": st.practiceSlope=el.dataset.v; save(); render(); break;
     case "practicep": S.practiceP=el.dataset.id; render(); break;
     case "startpractice": if(!st.calib) S.camLarge=true; S.practice={D:st.practiceD, green:newGreen(Math.random, st.practiceSlope==="flat")}; if(!S.practiceP) S.practiceP=S.players[0].id; S.last=null; render(); break;
     case "newgreen": S.practice.green=newGreen(Math.random, st.practiceSlope==="flat"); S.last=null; render(); break;
-    case "quitpractice": S.practice=null; S.last=null; render(); break;
+    case "quitpractice": S.practice=null; S.last=null; S.lastImpact=null; render(); break;
     case "togglecam": S.camLarge=!S.camLarge; render(); break;
     case "recalib": S.settings.calib=null; save(); LM.ball=null; LM.cand=null; LM.candN=0; if(LM.running){ LM.state="search"; setStatus("busy","Touche la balle sur l'image"); } render(); break;
     case "putdir": st.putDir=el.dataset.v; st.calib=null; setAim(); save(); render(); break;
