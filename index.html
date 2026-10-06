@@ -486,6 +486,27 @@ function onShot(shot){
   speak(shot, sim);
   render();
 }
+/* Spoken read of the putt before playing: distance to the flag, up/downhill, which way it breaks. */
+function sayPct(x){ const r=Math.round(Math.abs(x)*10)/10; return (Number.isInteger(r)?String(r):nf(r,1))+" pour cent"; }
+function sayDist(m){ if(m<1) return Math.round(m*100)+" centimètres"; const r=Math.round(m*10)/10; return (Number.isInteger(r)?r:nf(r,1))+" mètre"+(r>=2?"s":""); }
+function situationText(){
+  const c=curCtx(); if(!c) return "";
+  const dx=c.hole.x-c.start.x, dy=c.hole.y-c.start.y, L=Math.hypot(dx,dy)||1, u={x:dx/L,y:dy/L}, r={x:u.y,y:-u.x}, g=c.green;
+  const along=-(g.down.x*u.x+g.down.y*u.y)*g.slope, side=(g.down.x*r.x+g.down.y*r.y)*g.slope;
+  let t="";
+  if(S.tab==="play"&&S.round){ const R=S.round; t+="Trou "+(R.hi+1)+". "+(R.players.length>1?pname(c.pid)+". ":"")+(R.strokes>0?"Putt numéro "+(R.strokes+1)+". ":""); }
+  t+="Drapeau à "+sayDist(L)+". ";
+  t+= Math.abs(along)<0.3 ? "Putt à plat. " : (along>0?"En montée":"En descente")+", "+sayPct(along)+". ";
+  t+= Math.abs(side)<0.3 ? "Le putt est droit." : "Ça casse vers la "+(side>0?"droite":"gauche")+", "+sayPct(side)+".";
+  return t;
+}
+function speakSituation(force){
+  if(!S.settings.voice || !window.speechSynthesis) return;
+  const c=curCtx(); if(!c) return;
+  const key=[S.tab,S.round&&S.round.id,S.round&&S.round.hi,S.round&&S.round.pi,c.start.x.toFixed(3),c.start.y.toFixed(3),c.hole.y,c.green.slope,c.green.down.x.toFixed(3)].join("|");
+  if(!force && key===S.saidKey) return; S.saidKey=key;
+  try{ if(force) speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(situationText()); u.lang="fr-FR"; u.rate=1.0; speechSynthesis.speak(u); }catch(e){}
+}
 function speak(shot, sim){
   if(!S.settings.voice || !window.speechSynthesis) return;
   let t = nf(shot.v,1)+" mètre seconde. ";
@@ -567,7 +588,7 @@ function render(){
   else if(S.tab==="stats") v.innerHTML = viewStats();
   else v.innerHTML = viewSettings();
   bind();
-  if(live){ placeCam(); camStart(); LM.onShot=onShot; drawGreen(); }
+  if(live){ placeCam(); camStart(); LM.onShot=onShot; drawGreen(); if(!S.last) speakSituation(false); }
   else camStop();
 }
 function placeCam(){
@@ -589,11 +610,11 @@ function viewLive(){
     const R=S.round, h=R.holes[R.hi]; ctx=roundCtx();
     const D=Math.hypot(ctx.hole.x-ctx.start.x,ctx.hole.y-ctx.start.y);
     head=`<div class="holeinfo"><div><div class="small muted">Trou ${R.hi+1}/${R.holes.length} · Par 2 · ${esc(pname(ctx.pid))} · coup ${S.last&&S.last.after?R.strokes:R.strokes+1}</div><div class="big">${fmtM(D)}</div></div>
-      <div class="small" style="text-align:right">${esc(readGreen(ctx.start,ctx.hole,h.green))}<br><span class="muted">Stimp ${h.green.stimp}</span></div></div>`;
+      <div class="small" style="text-align:right">${esc(readGreen(ctx.start,ctx.hole,h.green))}<br><span class="muted">Stimp ${h.green.stimp}</span> · <button class="linkbtn" data-act="listen">Écouter</button></div></div>`;
   } else {
     const P=S.practice; ctx={hole:{x:0,y:P.D},start:{x:0,y:0},green:P.green};
     head=`<div class="holeinfo"><div><div class="small muted">Entraînement · Stimp ${P.green.stimp}</div><div class="big">${fmtM(P.D)}</div></div>
-      <div class="small" style="text-align:right">${esc(readGreen(ctx.start,ctx.hole,P.green))}<br><button class="linkbtn" data-act="newgreen">Nouveau green</button></div></div>`;
+      <div class="small" style="text-align:right">${esc(readGreen(ctx.start,ctx.hole,P.green))}<br><button class="linkbtn" data-act="newgreen">Nouveau green</button> · <button class="linkbtn" data-act="listen">Écouter</button></div></div>`;
   }
   let h=`<div class="stack">${head}
     ${!S.settings.testMode&&S.camLarge?`<div class="stack"><div id="camslot" class="camlarge"></div>
@@ -758,6 +779,7 @@ function onAct(e){
     case "testshot": { const v=S.tv||1.8, d=S.td||0; const face=d/0.85+(Math.random()-0.5)*0.6; onShot({v, dir:d, face, faceMeasured:false}); break; }
     case "stimp": st.stimp=Math.max(6,Math.min(15,st.stimp+(+el.dataset.v))); save(); render(); break;
     case "aim": st.aimDeg=Math.max(-15,Math.min(15,st.aimDeg+(+el.dataset.v))); setAim(); save(); render(); break;
+    case "listen": speakSituation(true); break;
     case "statp": S.statP=el.dataset.id; render(); break;
     case "export": exportData(); break;
   }
