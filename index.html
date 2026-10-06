@@ -183,7 +183,7 @@ function readGreen(start, hole, green){
 const S = { tab:"play", players:[], rounds:[], shots:[],
   settings:{stimp:10, voice:true, testMode:false, aimDeg:0, putDir:"left", calib:null, practiceD:3, practiceSlope:"flat"},
   round:null, practice:null, last:null, statP:"all", camLarge:false, loaded:false };
-function load(){ try{ const j=JSON.parse(localStorage.getItem(LS)||"null"); if(j){ S.players=j.players||[]; S.rounds=j.rounds||[]; S.shots=j.shots||[]; Object.assign(S.settings,j.settings||{}); } }catch(e){} S.loaded=true; }
+function load(){ try{ const j=JSON.parse(localStorage.getItem(LS)||"null"); if(j){ S.players=j.players||[]; S.rounds=j.rounds||[]; S.shots=j.shots||[]; Object.assign(S.settings,j.settings||{}); } }catch(e){} if(S.settings.distK==null) S.settings.distK=2.5; S.loaded=true; }
 function save(){ try{ localStorage.setItem(LS, JSON.stringify({players:S.players,rounds:S.rounds.slice(0,200),shots:S.shots.slice(-1500),settings:S.settings})); }catch(e){ toast("Mémoire du téléphone pleine : exporte puis efface des données."); } }
 const pname = id => (S.players.find(p=>p.id===id)||{name:"Joueur"}).name;
 
@@ -388,7 +388,7 @@ function finishShot(){
   if(p.length<2){ setStatus("err","Balle perdue : recommence"); return; }
   const use=p.slice(0,Math.min(p.length,9)), t0=use[0].t;
   const fx=linfit(use.map(q=>q.t-t0),use.map(q=>q.x)), fy=linfit(use.map(q=>q.t-t0),use.map(q=>q.y));
-  const vpx=Math.hypot(fx.b,fy.b), v=vpx*mmpx/1000;
+  const vpx=Math.hypot(fx.b,fy.b), v=vpx*mmpx/1000*Math.sqrt(S.settings.distK||1);
   const a=LM.aim, r={x:-a.y,y:a.x};
   const along=fx.b*a.x+fy.b*a.y, lat=fx.b*r.x+fy.b*r.y;
   const dir=Math.atan2(lat,along)*180/Math.PI;
@@ -730,6 +730,10 @@ function viewSettings(){
   <div class="card stack"><h3>Correction de visée</h3><div class="stepper"><button data-act="aim" data-v="-0.5" aria-label="Tourner à gauche">−</button><b>${dirTxt(st.aimDeg)}</b><button data-act="aim" data-v="0.5" aria-label="Tourner à droite">+</button></div>
     <p class="small muted">Si le téléphone n'est pas parfaitement parallèle à ta ligne, tourne la ligne jaune affichée sur l'image de la caméra jusqu'à ce qu'elle pointe vers la cible.</p>
     <button class="btn" data-act="recalib">Oublier la balle repérée</button></div>
+  <div class="card stack"><h3>Étalonnage des distances</h3><div class="stepper"><button data-act="distk" data-v="-0.1" aria-label="Diminuer">−</button><b>× ${nf(st.distK||1,1)}</b><button data-act="distk" data-v="0.1" aria-label="Augmenter">+</button></div>
+    <p class="small muted">Multiplie les distances mesurées pour coller à ton tapis. Le plus précis : putte une balle, mesure la distance qu'elle a vraiment roulée et entre-la ci-dessous.</p>
+    ${S.shots.length?`<div class="row"><input type="number" id="realdist" step="0.1" min="0.3" max="40" placeholder="Distance réelle du dernier putt (m)" class="grow" aria-label="Distance réelle du dernier putt en mètres"><button class="btn" data-act="calibk">Étalonner</button></div>
+    <p class="small muted">Dernier putt : ${nf(S.shots[S.shots.length-1].flat,1)} m calculés.</p>`:""}</div>
   <div class="card switch"><label for="voice"><h3>Annonce vocale</h3><p class="small muted">Le téléphone annonce la vitesse, la direction et le résultat.</p></label><input type="checkbox" id="voice" ${st.voice?"checked":""}></div>
   <div class="card switch"><label for="testmode"><h3>Mode test sans caméra</h3><p class="small muted">Pour essayer le jeu avec des curseurs.</p></label><input type="checkbox" id="testmode" ${st.testMode?"checked":""}></div>
   <div class="card stack"><h3>Joueurs</h3>
@@ -780,6 +784,10 @@ function onAct(e){
     case "stimp": st.stimp=Math.max(6,Math.min(15,st.stimp+(+el.dataset.v))); save(); render(); break;
     case "aim": st.aimDeg=Math.max(-15,Math.min(15,st.aimDeg+(+el.dataset.v))); setAim(); save(); render(); break;
     case "listen": speakSituation(true); break;
+    case "distk": st.distK=Math.max(0.3,Math.min(8,Math.round(((st.distK||1)+(+el.dataset.v))*10)/10)); save(); render(); break;
+    case "calibk": { const real=parseFloat(String($("#realdist").value).replace(",",".")); const last=S.shots[S.shots.length-1];
+      if(!(real>0)||!last||!(last.flat>0)) { toast("Entre la distance réelle en mètres."); break; }
+      st.distK=Math.max(0.3,Math.min(8,Math.round((st.distK||1)*real/last.flat*10)/10)); save(); render(); toast("Étalonnage réglé sur × "+nf(st.distK,1)); break; }
     case "statp": S.statP=el.dataset.id; render(); break;
     case "export": exportData(); break;
   }
