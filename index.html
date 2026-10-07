@@ -36,7 +36,7 @@ button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:3px solid var(--flag);outline-offset:2px}
 .app{max-width:620px;margin:0 auto;padding-inline:16px;padding-block:12px 110px}
-.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;min-width:0}
 .brand{white-space:nowrap;font-family:var(--display);font-weight:700;font-size:clamp(14px,4.4vw,26px);letter-spacing:.02em;text-transform:uppercase;line-height:1}
 .brand span{color:var(--green)}
 h2{font-family:var(--display);font-weight:600;font-size:24px;text-transform:uppercase;letter-spacing:.03em;margin:20px 0 10px;text-wrap:balance}
@@ -64,7 +64,9 @@ input[type=range]{width:100%;accent-color:var(--green)}
 .stepper button{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:22px;font-weight:700;flex:none}
 .stepper b{font-family:var(--display);font-size:28px;min-width:90px;text-align:center;font-variant-numeric:tabular-nums}
 /* live screen */
-.status{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 10px;font-weight:700;font-size:13px;white-space:nowrap;flex-shrink:0;background:var(--surface);border:1px solid var(--line)}
+.status{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 10px;font-weight:700;font-size:13px;white-space:nowrap;flex-shrink:1;min-width:0;max-width:52%;background:var(--surface);border:1px solid var(--line)}
+#statustxt{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.status i{flex-shrink:0}
 .status i{width:10px;height:10px;border-radius:50%;background:var(--muted)}
 .status.ready i{background:var(--good)} .status.ready{border-color:var(--good)}
 .status.busy i{background:var(--flag)}
@@ -121,10 +123,10 @@ svg text{fill:var(--muted);font-family:var(--body)}
   <main id="view"></main>
 </div>
 <nav class="tabs" id="tabs"><div class="in">
-  <button data-tab="play"><svg viewBox="0 0 24 24"><path d="M6 21V3l11 4-11 4"/><circle cx="17" cy="19" r="2"/></svg>Parcours</button>
-  <button data-tab="practice"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>Entraînement</button>
-  <button data-tab="stats"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Stats</button>
-  <button data-tab="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Réglages</button>
+  <button data-tab="play"><svg viewBox="0 0 24 24"><path d="M6 21V3l11 4-11 4"/><circle cx="17" cy="19" r="2"/></svg><span data-l="Parcours">Parcours</span></button>
+  <button data-tab="practice"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg><span data-l="Entraînement">Entraînement</span></button>
+  <button data-tab="stats"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span data-l="Stats">Stats</span></button>
+  <button data-tab="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span data-l="Réglages">Réglages</span></button>
 </div></nav>
 
 <!-- camera elements live outside the view so re-renders don't restart the stream -->
@@ -137,11 +139,250 @@ const BALL_R_MM = 21.335, HOLE_R = 0.054, G = 9.81, STIMP_V = 1.83;
 const LS = "puttlab-lm-v1";
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const nf = (x,d=1) => (x==null||isNaN(x)) ? "–" : x.toLocaleString("fr-FR",{minimumFractionDigits:d,maximumFractionDigits:d});
+/* =================== languages =================== */
+/* French is the source language: the French text is the key. Each entry: [English, Spanish, German]. Missing → French. */
+const LANGS=["fr","en","es","de"], LOC={fr:"fr-FR",en:"en-US",es:"es-ES",de:"de-DE"}, LIDX={en:0,es:1,de:2};
+const SIDES={fr:["D","G"],en:["R","L"],es:["D","I"],de:["R","L"]};
+function curLang(){ const s=S.settings.lang; if(LANGS.includes(s)) return s;
+  let n="en"; try{ n=String((navigator.languages&&navigator.languages[0])||navigator.language||"en").slice(0,2).toLowerCase(); }catch(e){}
+  return LANGS.includes(n)?n:"en"; }
+const I18N={
+  // navigation
+  "Parcours":["Course","Recorrido","Runde"],
+  "Entraînement":["Practice","Práctica","Training"],
+  "Stats":["Stats","Estadísticas","Statistik"],
+  "Réglages":["Settings","Ajustes","Einstellungen"],
+  // green read
+  "à plat":["flat","llano","flach"],
+  "montée {p} %":["uphill {p}%","subida {p} %","bergauf {p} %"],
+  "descente {p} %":["downhill {p}%","bajada {p} %","bergab {p} %"],
+  "casse vers la droite ({p} %)":["breaks right ({p}%)","cae a la derecha ({p} %)","bricht nach rechts ({p} %)"],
+  "casse vers la gauche ({p} %)":["breaks left ({p}%)","cae a la izquierda ({p} %)","bricht nach links ({p} %)"],
+  "droit":["straight","recto","gerade"],
+  // status, toasts, errors
+  "Mémoire du téléphone pleine : exporte puis efface des données.":["Phone storage is full: export, then delete some data.","La memoria del teléfono está llena: exporta y luego borra datos.","Telefonspeicher voll: exportiere und lösche dann Daten."],
+  "Joueur":["Player","Jugador","Spieler"],
+  "Mode test (sans caméra)":["Test mode (no camera)","Modo de prueba (sin cámara)","Testmodus (ohne Kamera)"],
+  "Pose la balle à sa place":["Put the ball on its spot","Coloca la bola en su sitio","Leg den Ball auf seinen Platz"],
+  "Touche la balle sur l'image":["Tap the ball on the image","Toca la bola en la imagen","Tippe auf den Ball im Bild"],
+  "La caméra demande une adresse https.":["The camera needs an https address.","La cámara necesita una dirección https.","Die Kamera braucht eine https-Adresse."],
+  "Caméra refusée ou indisponible. Autorise la caméra pour Square Face Putting dans les réglages du téléphone.":["Camera blocked or unavailable. Allow camera access for Square Face Putting in your phone settings.","Cámara denegada o no disponible. Permite el acceso a la cámara para Square Face Putting en los ajustes del teléfono.","Kamera verweigert oder nicht verfügbar. Erlaube Square Face Putting den Kamerazugriff in den Einstellungen deines Telefons."],
+  "Caméra arrêtée":["Camera off","Cámara apagada","Kamera aus"],
+  "Caméra indisponible":["Camera unavailable","Cámara no disponible","Kamera nicht verfügbar"],
+  "Prêt : putte ! ({n} images/s)":["Ready: putt! ({n} fps)","¡Listo, puttea! ({n} fps)","Bereit: putte! ({n} B/s)"],
+  "Prêt : putte !":["Ready: putt!","¡Listo, puttea!","Bereit: putte!"],
+  "Mesure…":["Measuring…","Midiendo…","Messe…"],
+  "La caméra démarre, réessaie.":["The camera is starting, try again.","La cámara se está iniciando, vuelve a intentarlo.","Die Kamera startet, versuch es noch mal."],
+  "Je ne vois pas de balle blanche à cet endroit.":["I can't see a white ball there.","No veo ninguna bola blanca en ese punto.","Ich sehe dort keinen weißen Ball."],
+  "Zone trop grande : touche bien la balle, sur un fond uni.":["Area too large: tap right on the ball, on a plain background.","Zona demasiado grande: toca justo la bola, sobre un fondo liso.","Bereich zu groß: Tippe genau auf den Ball, auf einfarbigem Untergrund."],
+  "Balle trop petite : rapproche un peu le téléphone.":["Ball too small: move the phone a little closer.","Bola demasiado pequeña: acerca un poco el teléfono.","Ball zu klein: Bring das Telefon etwas näher."],
+  "Balle repérée ({n} px). Tu peux putter.":["Ball found ({n} px). You can putt.","Bola detectada ({n} px). Ya puedes puttear.","Ball erkannt ({n} px). Du kannst putten."],
+  "Balle perdue : recommence":["Ball lost: try again","Bola perdida: repite","Ball verloren: noch mal"],
+  "Mesure douteuse : recommence":["Unreliable reading: try again","Medición dudosa: repite","Messung unsicher: noch mal"],
+  "Putt mesuré":["Putt measured","Putt medido","Putt gemessen"],
+  // impact
+  "Départ {d}":["Start {d}","Salida {d}","Start {d}"],
+  "Face {d}":["Face {d}","Cara {d}","Fläche {d}"],
+  "(estimée)":["(estimated)","(estimada)","(geschätzt)"],
+  "Face {f}, balle {d}":["Face {f}, ball {d}","Cara {f}, bola {d}","Schlagfläche {f}, Ball {d}"],
+  "Impact":["Impact","Impacto","Treffmoment"],
+  "Arrêt sur image au moment de l'impact":["Freeze frame at impact","Imagen congelada en el momento del impacto","Standbild im Treffmoment"],
+  "Départ de la balle {d}":["Ball start {d}","Salida de la bola {d}","Startrichtung des Balls {d}"],
+  "Vu de dessus, cible en haut. Angles agrandis ×5 sur le dessin.":["Top view, target at the top. Angles magnified ×5 in the drawing.","Vista desde arriba, objetivo arriba. Ángulos ampliados ×5 en el dibujo.","Ansicht von oben, Ziel oben. Winkel in der Zeichnung ×5 vergrößert."],
+  // voices
+  "femme":["female","mujer","weiblich"],
+  "homme":["male","hombre","männlich"],
+  // speech
+  "À toi, {name}. ":["Your turn, {name}. ","Te toca, {name}. ","Du bist dran, {name}. "],
+  "Trou {n}. ":["Hole {n}. ","Hoyo {n}. ","Loch {n}. "],
+  "Putt numéro {n}. ":["Putt number {n}. ","Putt número {n}. ","Putt Nummer {n}. "],
+  "Drapeau à {d}. ":["{d} to the pin. ","Bandera a {d}. ","Noch {d} bis zur Fahne. "],
+  "Putt à plat. ":["Flat putt. ","Putt llano. ","Flacher Putt. "],
+  "En montée":["Uphill","En subida","Bergauf"],
+  "En descente":["Downhill","En bajada","Bergab"],
+  "Le putt est droit.":["Straight putt.","El putt es recto.","Der Putt ist gerade."],
+  "Ça casse vers la droite, {p}.":["Breaks to the right, {p}.","Cae a la derecha, {p}.","Bricht nach rechts, {p}."],
+  "Ça casse vers la gauche, {p}.":["Breaks to the left, {p}.","Cae a la izquierda, {p}.","Bricht nach links, {p}."],
+  "Ça casse vers la gauche.":["Breaks to the left.","Cae a la izquierda.","Bricht nach links."],
+  "{n} pour cent":["{n} percent","{n} por ciento","{n} Prozent"],
+  "{n} centimètres":["{n} centimeters","{n} centímetros","{n} Zentimeter"],
+  "{v} mètre seconde. ":["{v} meters per second. ","{v} metros por segundo. ","{v} Meter pro Sekunde. "],
+  "Départ droit. ":["Started straight. ","Salida recta. ","Gerader Start. "],
+  "{n} {deg} à droite. ":["{n} {deg} right. ","{n} {deg} a la derecha. ","{n} {deg} nach rechts. "],
+  "{n} {deg} à gauche. ":["{n} {deg} left. ","{n} {deg} a la izquierda. ","{n} {deg} nach links. "],
+  "Dans le trou !":["In the hole!","¡Dentro del hoyo!","Eingelocht!"],
+  "Reste {d}.":["{d} left.","Quedan {d}.","Noch {d}."],
+  "Reste {d}":["{d} left","Quedan {d}","Noch {d}"],
+  "Bonjour, je serai ta voix sur le green.":["Hi, I'll be your voice on the green.","Hola, seré tu voz en el green.","Hallo, ich bin deine Stimme auf dem Grün."],
+  // live screen
+  "Vitesse":["Speed","Velocidad","Tempo"],
+  "Direction":["Direction","Dirección","Richtung"],
+  "départ":["start","salida","Start"],
+  "Face":["Face","Cara","Fläche"],
+  "mesurée":["measured","medida","gemessen"],
+  "estimée":["estimated","estimada","geschätzt"],
+  "à l'impact":["at impact","en el impacto","im Treffmoment"],
+  "Distance":["Distance","Distancia","Distanz"],
+  "m à plat":["m on flat","m en llano","m flach"],
+  "Trou {n}/{t}":["Hole {n}/{t}","Hoyo {n}/{t}","Loch {n}/{t}"],
+  "coup {n}":["stroke {n}","golpe {n}","Schlag {n}"],
+  "Écouter":["Listen","Escuchar","Anhören"],
+  "Nouveau green":["New green","Nuevo green","Neues Grün"],
+  "Pose la balle dans le cercle pointillé. Touche-la pour la repérer à nouveau.":["Place the ball in the dotted circle. Tap it to locate it again.","Coloca la bola en el círculo punteado. Tócala para volver a detectarla.","Leg den Ball in den gestrichelten Kreis. Tippe ihn an, um ihn neu zu erkennen."],
+  "<b>Touche la balle sur l'image</b> pour que l'appli la repère.":["<b>Tap the ball on the image</b> so the app can find it.","<b>Toca la bola en la imagen</b> para que la app la detecte.","<b>Tippe auf den Ball im Bild</b>, damit die App ihn erkennt."],
+  "Voir le green":["Show the green","Ver el green","Grün anzeigen"],
+  "Oublier la balle":["Forget the ball","Olvidar la bola","Ball vergessen"],
+  "Green virtuel":["Virtual green","Green virtual","Virtuelles Grün"],
+  "Agrandir la caméra":["Enlarge the camera","Ampliar la cámara","Kamera vergrößern"],
+  "Mode test : simule un putt":["Test mode: simulate a putt","Modo de prueba: simula un putt","Testmodus: Simuliere einen Putt"],
+  "Vitesse de la balle : ":["Ball speed: ","Velocidad de la bola: ","Ballgeschwindigkeit: "],
+  "Direction de départ : ":["Start direction: ","Dirección de salida: ","Startrichtung: "],
+  "Putter":["Putt","Puttear","Putten"],
+  "Quitter la partie":["Quit the round","Salir de la partida","Runde abbrechen"],
+  "Arrêter l'entraînement":["Stop practice","Terminar la práctica","Training beenden"],
+  "Carte de score":["Scorecard","Tarjeta","Scorekarte"],
+  "Total":["Total","Total","Gesamt"],
+  "Partie terminée":["Round complete","Partida terminada","Runde beendet"],
+  "{n} trous · par {p}":["{n} holes · par {p}","{n} hoyos · par {p}","{n} Löcher · Par {p}"],
+  "{n} putts":["{n} putts","{n} putts","{n} Putts"],
+  "Nouvelle partie":["New round","Nueva partida","Neue Runde"],
+  "Terminé":["Done","Hecho","Fertig"],
+  // setup tips
+  "Installer le téléphone":["Setting up the phone","Colocar el teléfono","Telefon aufstellen"],
+  "Fixe-le <b>en face de toi, de l'autre côté de la ligne de putt</b>, à environ <b>80 cm – 1 m de haut</b>, caméra vers le sol, écran tourné vers toi.":["Mount it <b>facing you, on the other side of the putting line</b>, about <b>80 cm – 1 m high</b>, camera pointing at the floor, screen turned toward you.","Fíjalo <b>frente a ti, al otro lado de la línea de putt</b>, a unos <b>80 cm – 1 m de altura</b>, con la cámara hacia el suelo y la pantalla hacia ti.","Befestige es <b>dir gegenüber, auf der anderen Seite der Puttlinie</b>, etwa <b>80 cm – 1 m hoch</b>, Kamera zum Boden, Bildschirm zu dir gedreht."],
+  "Sur l'image, la balle part <b>vers la gauche</b> si tu es droitier (vers la droite si tu es gaucher) : choisis le sens dans Réglages.":["On the image, the ball goes <b>to the left</b> if you're right-handed (to the right if you're left-handed): choose the direction in Settings.","En la imagen, la bola sale <b>hacia la izquierda</b> si eres diestro (hacia la derecha si eres zurdo): elige el sentido en Ajustes.","Im Bild rollt der Ball <b>nach links</b>, wenn du Rechtshänder bist (nach rechts als Linkshänder): Wähle die Richtung in den Einstellungen."],
+  "Pose la balle <b>près du bord de l'image opposé à la cible</b>, pour qu'elle reste visible le plus longtemps.":["Place the ball <b>near the edge of the image opposite the target</b>, so it stays visible as long as possible.","Coloca la bola <b>cerca del borde de la imagen opuesto al objetivo</b>, para que se vea el mayor tiempo posible.","Leg den Ball <b>nahe an den Bildrand gegenüber dem Ziel</b>, damit er möglichst lange sichtbar bleibt."],
+  "Au premier putt, <b>touche la balle sur l'image</b> : l'appli retient sa taille et sa place. Ensuite, repose chaque balle au même endroit.":["On the first putt, <b>tap the ball on the image</b>: the app remembers its size and position. After that, put each ball back on the same spot.","En el primer putt, <b>toca la bola en la imagen</b>: la app recuerda su tamaño y su posición. Después, coloca cada bola en el mismo sitio.","Beim ersten Putt <b>tippst du auf den Ball im Bild</b>: Die App merkt sich Größe und Position. Leg danach jeden Ball an dieselbe Stelle."],
+  "Balle blanche, tapis uni, bonne lumière, sans objet blanc près de la balle.":["White ball, plain mat, good light, no white objects near the ball.","Bola blanca, alfombra lisa, buena luz y ningún objeto blanco cerca de la bola.","Weißer Ball, einfarbige Matte, gutes Licht, keine weißen Gegenstände in Ballnähe."],
+  // play setup
+  "Parcours de putting":["Putting course","Recorrido de putting","Putting-Runde"],
+  "Chaque trou a une distance et une pente différentes. Tu puttes pour de vrai sur ton tapis, la balle virtuelle roule sur le green. Par 2 par trou.":["Every hole has a different distance and slope. You putt for real on your mat while the virtual ball rolls on the green. Par 2 per hole.","Cada hoyo tiene una distancia y una pendiente distintas. Tú haces el putt de verdad en tu alfombra y la bola virtual rueda por el green. Par 2 por hoyo.","Jedes Loch hat eine andere Distanz und Neigung. Du puttest echt auf deiner Matte, der virtuelle Ball rollt auf dem Grün. Par 2 pro Loch."],
+  "Joueurs":["Players","Jugadores","Spieler"],
+  "Chacun termine le trou avant le joueur suivant.":["Each player finishes the hole before the next one plays.","Cada jugador termina el hoyo antes de que juegue el siguiente.","Jeder spielt das Loch zu Ende, bevor der Nächste dran ist."],
+  "Ajoute des joueurs dans Réglages pour jouer à plusieurs.":["Add players in Settings to play with others.","Añade jugadores en Ajustes para jugar con varios.","Füge in den Einstellungen Spieler hinzu, um zu mehreren zu spielen."],
+  "Nombre de trous":["Number of holes","Número de hoyos","Anzahl Löcher"],
+  "{n} trous":["{n} holes","{n} hoyos","{n} Löcher"],
+  "Commencer la partie":["Start the round","Empezar la partida","Runde starten"],
+  "Avant de jouer":["Before you play","Antes de jugar","Vor dem Spiel"],
+  // practice setup
+  "Toujours le même putt : idéal pour travailler ta vitesse, ta direction et ta face.":["Always the same putt: ideal for working on your speed, your direction and your putter face.","Siempre el mismo putt: ideal para trabajar tu velocidad, tu dirección y la cara del putter.","Immer derselbe Putt: ideal, um an Tempo, Richtung und Schlagfläche zu arbeiten."],
+  "Distance du trou":["Distance to the hole","Distancia al hoyo","Distanz zum Loch"],
+  "Moins {d} m":["Minus {d} m","Menos {d} m","Minus {d} m"],
+  "Plus {d} m":["Plus {d} m","Más {d} m","Plus {d} m"],
+  "Green":["Green","Green","Grün"],
+  "À plat":["Flat","Llano","Flach"],
+  "Avec pente":["With slope","Con pendiente","Mit Neigung"],
+  "Qui s'entraîne ?":["Who's practicing?","¿Quién practica?","Wer trainiert?"],
+  "Démarrer":["Start","Empezar","Starten"],
+  // first player
+  "Bienvenue dans Square Face Putting":["Welcome to Square Face Putting","Bienvenido a Square Face Putting","Willkommen bei Square Face Putting"],
+  "Ajoute ton prénom pour commencer. Tout reste sur ce téléphone.":["Add your first name to get started. Everything stays on this phone.","Añade tu nombre para empezar. Todo se queda en este teléfono.","Gib deinen Vornamen ein, um loszulegen. Alles bleibt auf diesem Telefon."],
+  "Prénom":["First name","Nombre","Vorname"],
+  "C'est parti":["Let's go","¡Vamos!","Los geht's"],
+  // stats
+  "Ajoute un joueur pour commencer.":["Add a player to get started.","Añade un jugador para empezar.","Füge einen Spieler hinzu, um loszulegen."],
+  "Tous":["All","Todos","Alle"],
+  "Aucun putt mesuré pour l'instant.":["No putts measured yet.","Todavía no hay putts medidos.","Noch keine Putts gemessen."],
+  "Putts mesurés":["Putts measured","Putts medidos","Gemessene Putts"],
+  "Rentrés":["Holed","Embocados","Eingelocht"],
+  "{n} %":["{n}%","{n} %","{n} %"],
+  "Direction moyenne":["Average direction","Dirección media","Mittlere Richtung"],
+  "dispersion ±{n}°":["spread ±{n}°","dispersión ±{n}°","Streuung ±{n}°"],
+  "Face moyenne":["Average face","Cara media","Mittlere Fläche"],
+  "Départ à ±1°":["Start within ±1°","Salida a ±1°","Start innerhalb ±1°"],
+  "Ratés court / long":["Misses short / long","Fallos cortos / largos","Fehlputts kurz / lang"],
+  "Répartition de la direction de départ":["Start direction distribution","Distribución de la dirección de salida","Verteilung der Startrichtung"],
+  "Direction de départ":["Start direction","Dirección de salida","Startrichtung"],
+  "Derniers putts":["Latest putts","Últimos putts","Letzte Putts"],
+  "Quand":["When","Cuándo","Wann"],
+  "Dir.":["Dir.","Dir.","Richt."],
+  "Dist.":["Dist.","Dist.","Dist."],
+  "Résultat":["Result","Resultado","Ergebnis"],
+  "Rentré":["Holed","Dentro","Eingelocht"],
+  "* face estimée à partir de la direction de départ. Distance : à plat, au Stimp choisi.":["* face estimated from the start direction. Distance: on flat, at the chosen Stimp.","* cara estimada a partir de la dirección de salida. Distancia: en llano, con el Stimp elegido.","* Fläche aus der Startrichtung geschätzt. Distanz: flach, beim gewählten Stimp."],
+  // settings
+  "Langue":["Language","Idioma","Sprache"],
+  "Automatique":["Automatic","Automático","Automatisch"],
+  "La langue s'applique aussi aux annonces vocales. Automatique : celle du téléphone.":["The language also applies to the voice announcements. Automatic: the phone's language.","El idioma también se aplica a los anuncios de voz. Automático: el del teléfono.","Die Sprache gilt auch für die Sprachansagen. Automatisch: die Sprache des Telefons."],
+  "Vitesse du green (Stimp)":["Green speed (Stimp)","Velocidad del green (Stimp)","Grüngeschwindigkeit (Stimp)"],
+  "Moins rapide":["Slower","Más lento","Langsamer"],
+  "Plus rapide":["Faster","Más rápido","Schneller"],
+  "8 = green lent, 10 = moyen, 12 = rapide. Sert à calculer la distance parcourue.":["8 = slow green, 10 = medium, 12 = fast. Used to compute the distance rolled.","8 = green lento, 10 = medio, 12 = rápido. Sirve para calcular la distancia recorrida.","8 = langsames Grün, 10 = mittel, 12 = schnell. Dient zur Berechnung der Rolldistanz."],
+  "Sens du putt sur l'image":["Putt direction on the image","Sentido del putt en la imagen","Puttrichtung im Bild"],
+  "↑ Vers le haut":["↑ Up","↑ Hacia arriba","↑ Nach oben"],
+  "↓ Vers le bas":["↓ Down","↓ Hacia abajo","↓ Nach unten"],
+  "← Vers la gauche":["← Left","← Hacia la izquierda","← Nach links"],
+  "Vers la droite →":["Right →","Hacia la derecha →","Nach rechts →"],
+  "Téléphone posé <b>dans la longueur, dans le sens du putt</b> : <b>vers le haut</b> si le haut du téléphone pointe vers la cible, <b>vers le bas</b> s'il pointe vers toi. <b>Gauche / droite</b> : téléphone posé en travers de la ligne.":["Phone placed <b>lengthwise, along the putt</b>: <b>up</b> if the top of the phone points at the target, <b>down</b> if it points at you. <b>Left / right</b>: phone placed across the line.","Teléfono colocado <b>a lo largo, en el sentido del putt</b>: <b>hacia arriba</b> si la parte superior del teléfono apunta al objetivo, <b>hacia abajo</b> si apunta hacia ti. <b>Izquierda / derecha</b>: teléfono colocado de través respecto a la línea.","Telefon <b>längs, in Puttrichtung</b> gelegt: <b>nach oben</b>, wenn die Oberseite des Telefons zum Ziel zeigt, <b>nach unten</b>, wenn sie zu dir zeigt. <b>Links / rechts</b>: Telefon quer zur Linie gelegt."],
+  "Correction de visée":["Aim correction","Corrección de alineación","Zielkorrektur"],
+  "Tourner à gauche":["Turn left","Girar a la izquierda","Nach links drehen"],
+  "Tourner à droite":["Turn right","Girar a la derecha","Nach rechts drehen"],
+  "Si le téléphone n'est pas parfaitement parallèle à ta ligne, tourne la ligne jaune affichée sur l'image de la caméra jusqu'à ce qu'elle pointe vers la cible.":["If the phone isn't perfectly parallel to your line, turn the yellow line shown on the camera image until it points at the target.","Si el teléfono no está perfectamente paralelo a tu línea, gira la línea amarilla que aparece en la imagen de la cámara hasta que apunte al objetivo.","Wenn das Telefon nicht genau parallel zu deiner Linie liegt, drehe die gelbe Linie im Kamerabild, bis sie zum Ziel zeigt."],
+  "Oublier la balle repérée":["Forget the detected ball","Olvidar la bola detectada","Erkannten Ball vergessen"],
+  "Étalonnage des distances":["Distance calibration","Calibración de distancias","Distanzkalibrierung"],
+  "Diminuer":["Decrease","Reducir","Verringern"],
+  "Augmenter":["Increase","Aumentar","Erhöhen"],
+  "Multiplie les distances mesurées pour coller à ton tapis. Le plus précis : putte une balle, mesure la distance qu'elle a vraiment roulée et entre-la ci-dessous.":["Multiplies the measured distances to match your mat. Most accurate: putt a ball, measure how far it really rolled and enter it below.","Multiplica las distancias medidas para ajustarlas a tu alfombra. Lo más preciso: haz un putt, mide la distancia que ha rodado de verdad la bola y escríbela abajo.","Multipliziert die gemessenen Distanzen passend zu deiner Matte. Am genauesten: Putte einen Ball, miss, wie weit er wirklich gerollt ist, und gib den Wert unten ein."],
+  "Distance réelle du dernier putt (m)":["Actual distance of last putt (m)","Distancia real del último putt (m)","Echte Distanz des letzten Putts (m)"],
+  "Distance réelle du dernier putt en mètres":["Actual distance of the last putt in meters","Distancia real del último putt en metros","Echte Distanz des letzten Putts in Metern"],
+  "Étalonner":["Calibrate","Calibrar","Kalibrieren"],
+  "Dernier putt : {d} m calculés.":["Last putt: {d} m computed.","Último putt: {d} m calculados.","Letzter Putt: {d} m berechnet."],
+  "Annonce vocale":["Voice announcements","Anuncios de voz","Sprachansage"],
+  "Le téléphone annonce la vitesse, la direction et le résultat.":["The phone announces the speed, the direction and the result.","El teléfono anuncia la velocidad, la dirección y el resultado.","Das Telefon sagt Tempo, Richtung und Ergebnis an."],
+  "Bruitages":["Sound effects","Efectos de sonido","Soundeffekte"],
+  "Balle dans le trou et applaudissements, foule déçue quand le putt est raté.":["Ball dropping in the cup and applause; a disappointed crowd when you miss.","Bola cayendo en el hoyo y aplausos; público decepcionado cuando fallas el putt.","Ball fällt ins Loch und Applaus, enttäuschtes Publikum bei einem Fehlputt."],
+  "Son des applaudissements":["Applause sound","Sonido de los aplausos","Applaus-Sound"],
+  "Ton propre son est utilisé.":["Your own sound is used.","Se usa tu propio sonido.","Dein eigener Sound wird verwendet."],
+  "Son intégré à l'appli.":["Built-in app sound.","Sonido integrado en la app.","In der App integrierter Sound."],
+  "Tu peux choisir un fichier d'applaudissements (mp3, m4a, wav) téléchargé sur ton téléphone, par exemple sur un site de bruitages gratuits.":["You can pick an applause file (mp3, m4a, wav) downloaded to your phone, for example from a free sound-effects site.","Puedes elegir un archivo de aplausos (mp3, m4a, wav) descargado en tu teléfono, por ejemplo de una web de efectos de sonido gratuitos.","Du kannst eine Applaus-Datei (mp3, m4a, wav) wählen, die du auf dein Telefon geladen hast, z. B. von einer Seite mit kostenlosen Soundeffekten."],
+  "Choisir un fichier":["Choose a file","Elegir un archivo","Datei wählen"],
+  "Revenir au son intégré":["Back to the built-in sound","Volver al sonido integrado","Zurück zum integrierten Sound"],
+  "Son du putt raté":["Missed-putt sound","Sonido del putt fallado","Sound bei Fehlputt"],
+  "Son intégré à l'appli (foule déçue).":["Built-in app sound (disappointed crowd).","Sonido integrado en la app (público decepcionado).","In der App integrierter Sound (enttäuschtes Publikum)."],
+  "Tu peux choisir un autre fichier son (mp3, m4a, wav, de quelques secondes) enregistré sur ton téléphone.":["You can pick another sound file (mp3, m4a, wav, a few seconds long) saved on your phone.","Puedes elegir otro archivo de sonido (mp3, m4a, wav, de unos segundos) guardado en tu teléfono.","Du kannst eine andere Sounddatei (mp3, m4a, wav, wenige Sekunden lang) wählen, die auf deinem Telefon gespeichert ist."],
+  "Choix de la voix":["Voice","Elección de la voz","Stimme"],
+  "Voix":["Voice","Voz","Stimme"],
+  "Voix par défaut du téléphone":["Phone's default voice","Voz predeterminada del teléfono","Standardstimme des Telefons"],
+  "Aucune voix trouvée pour l'instant. Rouvre cette page dans quelques secondes.":["No voice found yet. Reopen this page in a few seconds.","Todavía no se ha encontrado ninguna voz. Vuelve a abrir esta página en unos segundos.","Noch keine Stimme gefunden. Öffne diese Seite in ein paar Sekunden erneut."],
+  "Ton : plus grave ← → plus aigu":["Pitch: lower ← → higher","Tono: más grave ← → más agudo","Tonhöhe: tiefer ← → höher"],
+  "Vitesse de parole":["Speaking rate","Velocidad de habla","Sprechtempo"],
+  "Écouter un exemple":["Play a sample","Escuchar un ejemplo","Beispiel anhören"],
+  "Les voix proposées dépendent de ton téléphone. Pour en avoir d'autres (homme ou femme) : sur iPhone, Réglages › Accessibilité › Contenu énoncé › Voix › Français ; sur Android, Paramètres › Synthèse vocale.":["The voices on offer depend on your phone. To get others (male or female): on iPhone, Settings › Accessibility › Spoken Content › Voices › English; on Android, Settings › Text-to-speech output.","Las voces disponibles dependen de tu teléfono. Para tener otras (de hombre o de mujer): en iPhone, Ajustes › Accesibilidad › Contenido leído › Voces › Español; en Android, Ajustes › Síntesis de voz.","Welche Stimmen es gibt, hängt von deinem Telefon ab. Für weitere (männlich oder weiblich): auf dem iPhone Einstellungen › Bedienungshilfen › Gesprochene Inhalte › Stimmen › Deutsch; auf Android Einstellungen › Sprachausgabe."],
+  "Mode test sans caméra":["Test mode without camera","Modo de prueba sin cámara","Testmodus ohne Kamera"],
+  "Pour essayer le jeu avec des curseurs.":["To try the game with sliders.","Para probar el juego con controles deslizantes.","Um das Spiel mit Schiebereglern auszuprobieren."],
+  "Supprimer":["Delete","Eliminar","Löschen"],
+  "Non":["No","No","Nein"],
+  "Prénom du joueur":["Player's first name","Nombre del jugador","Vorname des Spielers"],
+  "Prénom du nouveau joueur":["New player's first name","Nombre del nuevo jugador","Vorname des neuen Spielers"],
+  "Ajouter":["Add","Añadir","Hinzufügen"],
+  "Sauvegarde":["Backup","Copia de seguridad","Sicherung"],
+  "Tout reste sur ce téléphone, sans compte. Exporte un fichier de temps en temps pour ne rien perdre.":["Everything stays on this phone, no account needed. Export a file from time to time so you don't lose anything.","Todo se queda en este teléfono, sin cuenta. Exporta un archivo de vez en cuando para no perder nada.","Alles bleibt auf diesem Telefon, ohne Konto. Exportiere ab und zu eine Datei, damit nichts verloren geht."],
+  "Exporter":["Export","Exportar","Exportieren"],
+  "Importer":["Import","Importar","Importieren"],
+  // events
+  "Écris un prénom.":["Type a first name.","Escribe un nombre.","Gib einen Vornamen ein."],
+  "Fichier trop lourd : prends un son de moins de 1,5 Mo (quelques secondes).":["File too large: pick a sound under 1.5 MB (a few seconds).","Archivo demasiado pesado: elige un sonido de menos de 1,5 MB (unos segundos).","Datei zu groß: Nimm einen Sound unter 1,5 MB (wenige Sekunden)."],
+  "Son d'applaudissements enregistré":["Applause sound saved","Sonido de aplausos guardado","Applaus-Sound gespeichert"],
+  "Ce fichier son n'est pas lisible ou trop gros pour le téléphone.":["This sound file can't be read or is too big for the phone.","Este archivo de sonido no se puede leer o es demasiado grande para el teléfono.","Diese Sounddatei ist nicht lesbar oder zu groß für das Telefon."],
+  "Fichier trop lourd : prends un son de moins de 700 Ko (2 ou 3 secondes).":["File too large: pick a sound under 700 KB (2 or 3 seconds).","Archivo demasiado pesado: elige un sonido de menos de 700 KB (2 o 3 segundos).","Datei zu groß: Nimm einen Sound unter 700 KB (2 oder 3 Sekunden)."],
+  "Son du putt raté enregistré":["Missed-putt sound saved","Sonido del putt fallado guardado","Fehlputt-Sound gespeichert"],
+  "Entre la distance réelle en mètres.":["Enter the actual distance in meters.","Introduce la distancia real en metros.","Gib die echte Distanz in Metern ein."],
+  "Étalonnage réglé sur × {n}":["Calibration set to × {n}","Calibración ajustada a × {n}","Kalibrierung auf × {n} gesetzt"],
+  "sauvegarde":["backup","copia","sicherung"],
+  "Sauvegarde importée":["Backup imported","Copia de seguridad importada","Sicherung importiert"],
+  "Ce fichier n'est pas une sauvegarde Square Face Putting.":["This file isn't a Square Face Putting backup.","Este archivo no es una copia de seguridad de Square Face Putting.","Diese Datei ist keine Square-Face-Putting-Sicherung."]
+};
+const I18N_MISS=new Set();
+function t(fr, vars){
+  const L=curLang(); let s=fr;
+  if(L!=="fr"){ const e=I18N[fr]; if(e&&e[LIDX[L]]!=null) s=e[LIDX[L]]; else I18N_MISS.add(fr); }
+  return vars ? s.replace(/\{(\w+)\}/g,(m,k)=>vars[k]!=null?String(vars[k]):m) : s;
+}
+const nf = (x,d=1) => (x==null||isNaN(x)) ? "–" : x.toLocaleString(LOC[curLang()],{minimumFractionDigits:d,maximumFractionDigits:d});
 const fmtM = m => m<1 ? Math.round(m*100)+" cm" : nf(m,1)+" m";
 const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 function toast(msg){ const t=document.createElement("div"); t.className="toast"; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2600); }
-function dirTxt(d){ if(d==null) return "–"; const a=Math.abs(d); return a<0.05?"0,0°":nf(a,1)+"° "+(d>0?"D":"G"); }
+function dirTxt(d){ if(d==null) return "–"; const a=Math.abs(d), sd=SIDES[curLang()]; return a<0.05?nf(0,1)+"°":nf(a,1)+"° "+(d>0?sd[0]:sd[1]); }
 function rng(seed){ let s=seed>>>0||1; return ()=>{ s^=s<<13; s>>>=0; s^=s>>17; s^=s<<5; s>>>=0; return s/4294967296; }; }
 
 /* Roll deceleration from the Stimpmeter: ball leaves the ramp at 1.83 m/s and rolls S feet. */
@@ -179,25 +420,27 @@ function readGreen(start, hole, green){
   const along=-(green.down.x*u.x+green.down.y*u.y)*green.slope; // + = uphill
   const side=(green.down.x*r.x+green.down.y*r.y)*green.slope;   // + = breaks right
   const parts=[];
-  if(Math.abs(along)<0.3) parts.push("à plat"); else parts.push((along>0?"montée ":"descente ")+nf(Math.abs(along),1)+" %");
-  if(Math.abs(side)>=0.3) parts.push("casse vers la "+(side>0?"droite":"gauche")+" ("+nf(Math.abs(side),1)+" %)"); else parts.push("droit");
+  if(Math.abs(along)<0.3) parts.push(t("à plat")); else parts.push(t(along>0?"montée {p} %":"descente {p} %",{p:nf(Math.abs(along),1)}));
+  if(Math.abs(side)>=0.3) parts.push(t(side>0?"casse vers la droite ({p} %)":"casse vers la gauche ({p} %)",{p:nf(Math.abs(side),1)})); else parts.push(t("droit"));
   return parts.join(" · ");
 }
 
 /* =================== state & storage =================== */
 const S = { tab:"play", players:[], rounds:[], shots:[],
-  settings:{stimp:10, voice:true, testMode:false, aimDeg:0, putDir:"left", calib:null, practiceD:3, practiceSlope:"flat"},
+  settings:{stimp:10, voice:true, testMode:false, aimDeg:0, putDir:"left", calib:null, practiceD:3, practiceSlope:"flat", lang:"auto"},
   round:null, practice:null, last:null, statP:"all", camLarge:false, loaded:false };
 function load(){ try{ const j=JSON.parse(localStorage.getItem(LS)||"null"); if(j){ S.players=j.players||[]; S.rounds=j.rounds||[]; S.shots=j.shots||[]; Object.assign(S.settings,j.settings||{}); } }catch(e){} if(S.settings.distK==null) S.settings.distK=2.5; S.loaded=true; }
-function save(){ try{ localStorage.setItem(LS, JSON.stringify({players:S.players,rounds:S.rounds.slice(0,200),shots:S.shots.slice(-1500),settings:S.settings})); }catch(e){ toast("Mémoire du téléphone pleine : exporte puis efface des données."); } }
-const pname = id => (S.players.find(p=>p.id===id)||{name:"Joueur"}).name;
+function save(){ try{ localStorage.setItem(LS, JSON.stringify({players:S.players,rounds:S.rounds.slice(0,200),shots:S.shots.slice(-1500),settings:S.settings})); }catch(e){ toast(t("Mémoire du téléphone pleine : exporte puis efface des données.")); } }
+const pname = id => (S.players.find(p=>p.id===id)||{name:t("Joueur")}).name;
 
 /* =================== camera launch monitor =================== */
 const CAMWRAP=$("#camwrap"), cam=$("#cam"), camov=$("#camov"), octx=camov.getContext("2d");
 const proc=document.createElement("canvas"), pctx=proc.getContext("2d",{willReadFrequently:true});
 const LM = { stream:null, running:false, state:"off", PW:0, PH:0, ball:null, cand:null, candN:0, frameN:0,
   grays:[], imgs:[], pts:[], lastSeenT:0, impactIdx:-1, onShot:null, aim:{x:0,y:-1}, lostN:0, lastT:0, fps:0, err:"" };
-function setStatus(cls, txt){ const s=$("#status"); s.hidden=false; s.className="status "+cls; $("#statustxt").textContent=txt; }
+/* Status pill: the French text is kept so it can be re-translated when the language changes. */
+function setStatus(cls, txt, vars){ LM.statusArgs=[cls,txt,vars]; const s=$("#status"); s.hidden=false; s.className="status "+cls; $("#statustxt").textContent=t(txt,vars); }
+function refreshStatus(){ const a=LM.statusArgs; $("#statustxt").textContent = a ? t(a[1],a[2]) : t("Caméra arrêtée"); }
 async function camStart(){
   if(S.settings.testMode){ setStatus("ready","Mode test (sans caméra)"); return; }
   if(LM.running) return;
@@ -214,7 +457,7 @@ async function camStart(){
     try{ if(navigator.wakeLock) LM.wake=await navigator.wakeLock.request("screen"); }catch(e){}
     loop();
   }catch(e){
-    LM.err = location.protocol!=="https:"&&location.hostname!=="localhost" ? "La caméra demande une adresse https." : "Caméra refusée ou indisponible. Autorise la caméra pour Square Face Putting dans les réglages du téléphone.";
+    LM.err = location.protocol!=="https:"&&location.hostname!=="localhost" ? t("La caméra demande une adresse https.") : t("Caméra refusée ou indisponible. Autorise la caméra pour Square Face Putting dans les réglages du téléphone.");
     setStatus("err","Caméra indisponible"); toast(LM.err);
   }
 }
@@ -251,7 +494,7 @@ function frame(t){
       const b=findBall(d,PW,PH);
       if(b && LM.cand && Math.hypot(b.x-LM.cand.x,b.y-LM.cand.y)<Math.max(2,b.r*0.35)){ LM.candN++; LM.cand=b; }
       else { LM.cand=b; LM.candN=b?1:0; }
-      if(LM.candN>=6){ LM.ball=LM.cand; LM.state="armed"; LM.lastSeenT=t; LM.bg=null; LM.goneN=0; setStatus("ready","Prêt : putte ! ("+Math.round(LM.fps)+" images/s)"); }
+      if(LM.candN>=6){ LM.ball=LM.cand; LM.state="armed"; LM.lastSeenT=t; LM.bg=null; LM.goneN=0; setStatus("ready","Prêt : putte ! ({n} images/s)",{n:Math.round(LM.fps)}); }
     }
   } else if(LM.state==="armed"){
     const b=LM.ball, T=b.w*0.7;
@@ -321,22 +564,22 @@ function findBall(d,PW,PH){
 }
 /* One tap on the camera image: take the white blob under the finger as the ball and remember its size and place. */
 function selectBallAt(px,py){
-  const img=LM.lastImg; if(!img){ toast("La caméra démarre, réessaie."); return; }
+  const img=LM.lastImg; if(!img){ toast(t("La caméra démarre, réessaie.")); return; }
   const d=img.data, PW=LM.PW, PH=LM.PH, R=Math.round(Math.max(PW,PH)/14);
   let mx=0,bx=px,by=py;
   for(let y=Math.max(0,py-R|0);y<Math.min(PH,py+R);y++) for(let x=Math.max(0,px-R|0);x<Math.min(PW,px+R);x++){ const w=W8(d,(y*PW+x)*4)-0.6*Math.hypot(x-px,y-py); if(w>mx){mx=w;bx=x;by=y;} }
   const peak=W8(d,(by*PW+bx)*4);
-  if(peak<70){ toast("Je ne vois pas de balle blanche à cet endroit."); return; }
+  if(peak<70){ toast(t("Je ne vois pas de balle blanche à cet endroit.")); return; }
   const T=peak*0.75, seen=new Uint8Array(PW*PH), st=[by*PW+bx]; seen[st[0]]=1; let n=0,sx=0,sy=0;
   while(st.length && n<6000){ const k=st.pop(), x=k%PW, y=(k/PW)|0; n++; sx+=x; sy+=y;
     for(const nb of [x>0?k-1:-1, x<PW-1?k+1:-1, y>0?k-PW:-1, y<PH-1?k+PW:-1]){ if(nb>=0&&!seen[nb]&&W8(d,nb*4)>=T){ seen[nb]=1; st.push(nb); } } }
   const r=Math.sqrt(n/Math.PI);
-  if(n>=6000||r>Math.max(PW,PH)/8){ toast("Zone trop grande : touche bien la balle, sur un fond uni."); return; }
-  if(r<2){ toast("Balle trop petite : rapproche un peu le téléphone."); return; }
+  if(n>=6000||r>Math.max(PW,PH)/8){ toast(t("Zone trop grande : touche bien la balle, sur un fond uni.")); return; }
+  if(r<2){ toast(t("Balle trop petite : rapproche un peu le téléphone.")); return; }
   const c={x:sx/n,y:sy/n,r,w:peak};
   S.settings.calib={x:c.x/PW,y:c.y/PH,r:c.r/PW}; save();
   LM.ball=c; LM.state="armed"; LM.lastSeenT=LM.lastT; LM.bg=null; setStatus("ready","Prêt : putte !");
-  toast("Balle repérée ("+Math.round(c.r*2)+" px). Tu peux putter.");
+  toast(t("Balle repérée ({n} px). Tu peux putter.",{n:Math.round(c.r*2)}));
 }
 /* Share of the ball's disk that is still white: drops when the ball leaves its spot. */
 function presence(d,PW,b,T){
@@ -431,14 +674,14 @@ function makeSnap(b,mmpx,face,dir,fdeg){
   { // launch angle: arc between aim line and ball line + label
     const R=N*0.30, a0=-Math.PI/2, a1=-Math.PI/2+dr;
     x.strokeStyle="#FF5A3C"; x.lineWidth=2.5; x.beginPath(); x.arc(pb[0],pb[1],R,Math.min(a0,a1),Math.max(a0,a1)); x.stroke();
-    const tip=P(L*0.92*Math.cos(dr),L*0.92*Math.sin(dr)), lab="Départ "+dirTxt(dir);
+    const tip=P(L*0.92*Math.cos(dr),L*0.92*Math.sin(dr)), lab=t("Départ {d}",{d:dirTxt(dir)});
     x.font="700 17px system-ui,sans-serif"; const tw=x.measureText(lab).width+16, th=26;
     let lx=Math.max(4,Math.min(N-tw-4, tip[0]+(dir>=0?8:-tw-8))), ly=Math.max(4,tip[1]-th/2);
     x.fillStyle="rgba(0,0,0,.65)"; x.beginPath(); x.roundRect?x.roundRect(lx,ly,tw,th,8):x.rect(lx,ly,tw,th); x.fill();
     x.fillStyle="#FF8A70"; x.textBaseline="middle"; x.fillText(lab,lx+8,ly+th/2+1); }
   x.fillStyle="rgba(0,0,0,.6)"; x.fillRect(0,N-34,N,34); x.font="600 15px system-ui,sans-serif"; x.textBaseline="middle";
-  x.fillStyle="#FFD23C"; x.fillText("Face "+dirTxt(fdeg)+(face?"":" (estimée)"),10,N-17);
-  x.fillStyle="#FF8A70"; const t2="Départ "+dirTxt(dir); x.fillText(t2,N-10-x.measureText(t2).width,N-17);
+  x.fillStyle="#FFD23C"; x.fillText(t("Face {d}",{d:dirTxt(fdeg)})+(face?"":" "+t("(estimée)")),10,N-17);
+  x.fillStyle="#FF8A70"; const t2=t("Départ {d}",{d:dirTxt(dir)}); x.fillText(t2,N-10-x.measureText(t2).width,N-17);
   return cv.toDataURL("image/jpeg",0.82);
 }
 function impactSvg(sh){
@@ -447,7 +690,7 @@ function impactSvg(sh){
   const [ex,ey]=pt(d,125), [nx,ny]=pt(f,70);
   const hx=46*Math.cos(f), hy=46*Math.sin(f), py=by+20;
   const ph=[[cx-hx,py-hy],[cx+hx,py+hy]];
-  return `<svg viewBox="0 0 200 200" class="impsvg" role="img" aria-label="Face ${dirTxt(sh.face)}, balle ${dirTxt(sh.dir)}">
+  return `<svg viewBox="0 0 200 200" class="impsvg" role="img" aria-label="${esc(t("Face {f}, balle {d}",{f:dirTxt(sh.face),d:dirTxt(sh.dir)}))}">
     <line x1="${cx}" y1="190" x2="${cx}" y2="8" stroke="currentColor" stroke-opacity=".45" stroke-width="1.5" stroke-dasharray="5 5"/>
     <line x1="${ph[0][0]}" y1="${ph[0][1]}" x2="${ph[1][0]}" y2="${ph[1][1]}" stroke="#E0A800" stroke-width="9" stroke-linecap="round"/>
     <line x1="${cx}" y1="${py}" x2="${nx}" y2="${ny+20}" stroke="#E0A800" stroke-width="2"/>
@@ -460,11 +703,11 @@ function impactSvg(sh){
 }
 function impactHtml(){
   const I=S.lastImpact; if(!I) return "";
-  return `<div class="card stack"><h3>Impact</h3><div class="impgrid">
-    ${I.snap?`<img class="impimg" src="${I.snap}" alt="Arrêt sur image au moment de l'impact">`:""}
+  return `<div class="card stack"><h3>${t("Impact")}</h3><div class="impgrid">
+    ${I.snap?`<img class="impimg" src="${I.snap}" alt="${esc(t("Arrêt sur image au moment de l'impact"))}">`:""}
     <div class="impside">${impactSvg(I)}<div class="stack" style="gap:6px">
-      <div class="small"><b style="color:#E0A800">Face ${dirTxt(I.face)}</b>${I.faceMeasured?"":' <span class="muted">(estimée)</span>'}<br><b style="color:#E5533A">Départ de la balle ${dirTxt(I.dir)}</b></div>
-      <div class="small muted">Vu de dessus, cible en haut. Angles agrandis ×5 sur le dessin.</div></div></div></div></div>`;
+      <div class="small"><b style="color:#E0A800">${t("Face {d}",{d:dirTxt(I.face)})}</b>${I.faceMeasured?"":' <span class="muted">'+t("(estimée)")+'</span>'}<br><b style="color:#E5533A">${t("Départ de la balle {d}",{d:dirTxt(I.dir)})}</b></div>
+      <div class="small muted">${t("Vu de dessus, cible en haut. Angles agrandis ×5 sur le dessin.")}</div></div></div></div></div>`;
 }
 function measureFace(b,mmpx){
   const FF=LM.faceFrames; if(!FF) return null;
@@ -522,9 +765,26 @@ function newRound(players, nHoles){
   for(let i=0;i<nHoles;i++){ const D=Math.round((1.2+rand()*9)*2)/2; holes.push({D, green:newGreen(rand,false)}); }
   return {id:uid(), date:Date.now(), players:[...players], holes, scores:Object.fromEntries(players.map(p=>[p,[]])), hi:0, pi:0, ball:{x:0,y:0}, strokes:0, done:false};
 }
+/* Real golf order on each hole: everybody putts once in turn, then the ball farthest from the hole plays next,
+   until every ball is holed (or picked up after 6 putts). R.st keeps each player's ball on the current hole. */
+function holeState(R){
+  if(R.st && R.stHi===R.hi) return R.st;
+  const st={}; R.players.forEach((p,i)=>{
+    const done=R.scores[p][R.hi]!=null;
+    st[p] = done ? {x:0,y:0,n:0,out:true} : (i===R.pi ? {x:R.ball.x,y:R.ball.y,n:R.strokes,out:false} : {x:0,y:0,n:0,out:false});
+  });
+  R.st=st; R.stHi=R.hi; return st;
+}
+function nextPlayer(R){
+  const st=holeState(R), D=R.holes[R.hi].D; let best=-1, bd=-1;
+  R.players.forEach((p,i)=>{ const b=st[p]; if(b.out) return; const d=Math.hypot(b.x,b.y-D); if(d>bd+1e-6){ bd=d; best=i; } });
+  if(best<0) return false;
+  const b=st[R.players[best]]; R.pi=best; R.ball={x:b.x,y:b.y}; R.strokes=b.n; return true;
+}
 function roundCtx(){
-  const R=S.round, h=R.holes[R.hi];
-  return {hole:{x:0,y:h.D}, start:R.ball, green:h.green, pid:R.players[R.pi]};
+  const R=S.round, h=R.holes[R.hi], st=holeState(R), pid=R.players[R.pi];
+  const others=R.players.filter(p=>p!==pid && !st[p].out).map(p=>({x:st[p].x,y:st[p].y,name:pname(p)}));
+  return {hole:{x:0,y:h.D}, start:R.ball, green:h.green, pid, others};
 }
 function onShot(shot){
   const snap=shot.snap; delete shot.snap; S.lastImpact={snap, face:shot.face, dir:shot.dir, faceMeasured:shot.faceMeasured};
@@ -538,14 +798,15 @@ function onShot(shot){
   S.shots.push(shot);
   S.last={shot, sim, ctx, anim:performance.now()};
   if(mode==="parcours"){
-    const R=S.round; R.strokes++;
+    const R=S.round, st=holeState(R), me=st[ctx.pid]; R.strokes++; me.n=R.strokes;
     const finished = sim.holed || R.strokes>=6;
     S.last.after = () => {
-      if(finished){
-        R.scores[ctx.pid][R.hi]=R.strokes + (sim.holed?0:1);
-        R.strokes=0; R.ball={x:0,y:0}; R.pi++;
-        if(R.pi>=R.players.length){ R.pi=0; R.hi++; if(R.hi>=R.holes.length){ R.done=true; } }
-      } else R.ball={x:sim.end.x,y:sim.end.y};
+      if(finished){ me.out=true; R.scores[ctx.pid][R.hi]=me.n + (sim.holed?0:1); }
+      else { me.x=sim.end.x; me.y=sim.end.y; }
+      if(!nextPlayer(R)){                       // everybody is in: next hole
+        R.hi++; R.st=null; R.pi=0; R.strokes=0; R.ball={x:0,y:0};
+        if(R.hi>=R.holes.length) R.done=true;
+      }
       save(); render();
     };
   }
@@ -555,30 +816,45 @@ function onShot(shot){
 }
 /* Spoken read of the putt before playing: distance to the flag, up/downhill, which way it breaks. */
 /* Voices: whatever the phone offers (iPhone: Thomas, Amélie, Audrey… Android: Google voices). */
-const FEMALE=/am[ée]lie|audrey|aur[ée]lie|marie|julie|hortense|denise|c[ée]line|l[ée]a|virginie|chantal|sylvie|caroline|eloise|[ée]lo[iï]se|vivienne|brigitte|female|femme/i;
-const MALE=/thomas|daniel|nicolas|paul|henri|jacques|claude|r[ée]mi|mathieu|antoine|jean|guillaume|remy|male|homme/i;
-function frVoices(){ try{ const v=speechSynthesis.getVoices()||[]; const fr=v.filter(x=>/^fr/i.test(x.lang)); return fr.length?fr:v; }catch(e){ return []; } }
-function voiceLabel(v){ const g=FEMALE.test(v.name)?" · femme":MALE.test(v.name)&&!/female/i.test(v.name)?" · homme":""; return v.name.replace(/\s*\(.*?\)\s*/g," ").trim()+" ("+v.lang+")"+g; }
+const FEMALE=/am[ée]lie|audrey|aur[ée]lie|marie|julie|hortense|denise|c[ée]line|l[ée]a|virginie|chantal|sylvie|caroline|eloise|[ée]lo[iï]se|vivienne|brigitte|samantha|karen|moira|tessa|fiona|victoria|zira|susan|serena|monica|m[oó]nica|paulina|marisol|helena|laura|anna|petra|katja|female|femme/i;
+const MALE=/thomas|daniel|nicolas|paul|henri|jacques|claude|r[ée]mi|mathieu|antoine|jean|guillaume|remy|alex|fred|arthur|aaron|rishi|jorge|diego|juan|pablo|markus|stefan|yannick|martin|male|homme/i;
+/* Voices of the active language (fallback: every voice). */
+function langVoices(){ try{ const v=speechSynthesis.getVoices()||[]; const re=new RegExp("^"+curLang(),"i"); const l=v.filter(x=>re.test(x.lang)); return l.length?l:v; }catch(e){ return []; } }
+function bestVoice(vs){ const loc=LOC[curLang()].toLowerCase(), ex=vs.filter(x=>String(x.lang).replace("_","-").toLowerCase()===loc), pool=ex.length?ex:vs;
+  return pool.find(x=>x.default)||pool.find(x=>x.localService)||pool[0]||null; }
+/* Saved voice if it suits the language, otherwise the best voice of that language (and remember it). "" = phone default. */
+function pickVoice(force){
+  const vs=langVoices(); if(!vs.length) return null;
+  const st=S.settings; let v=vs.find(x=>x.voiceURI===st.voiceURI||x.name===st.voiceURI);
+  if(!v && (st.voiceURI || force)){ v=bestVoice(vs); if(v&&st.voiceURI!==v.voiceURI){ st.voiceURI=v.voiceURI; save(); } }
+  return v||null;
+}
+function voiceLabel(v){ const g=FEMALE.test(v.name)?" · "+t("femme"):MALE.test(v.name)&&!/female/i.test(v.name)?" · "+t("homme"):""; return v.name.replace(/\s*\(.*?\)\s*/g," ").trim()+" ("+v.lang+")"+g; }
 function sayText(text, cancel){
   if(!window.speechSynthesis||!text) return;
-  try{ if(cancel) speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="fr-FR";
-    const st=S.settings, v=frVoices().find(x=>x.voiceURI===st.voiceURI||x.name===st.voiceURI); if(v){ u.voice=v; u.lang=v.lang; }
+  try{ if(cancel) speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang=LOC[curLang()];
+    const st=S.settings, v=pickVoice(false); if(v){ u.voice=v; u.lang=v.lang; }
     u.rate=st.vRate||1; u.pitch=st.vPitch||1; speechSynthesis.speak(u); }catch(e){}
 }
-try{ if(window.speechSynthesis) speechSynthesis.addEventListener("voiceschanged",()=>{ if(S.tab==="settings") render(); }); }catch(e){}
-function sayPct(x){ const r=Math.round(Math.abs(x)*10)/10; return (Number.isInteger(r)?String(r):nf(r,1))+" pour cent"; }
-function sayDist(m){ if(m<1) return Math.round(m*100)+" centimètres"; const r=Math.round(m*10)/10; return (Number.isInteger(r)?r:nf(r,1))+" mètre"+(r>=2?"s":""); }
+try{ if(window.speechSynthesis) speechSynthesis.addEventListener("voiceschanged",()=>{ pickVoice(false); if(S.tab==="settings") render(); }); }catch(e){}
+/* Spoken numbers: whole numbers without decimals, otherwise the language's decimal separator. */
+const sayNum = r => Number.isInteger(r) ? String(r) : nf(r,1);
+function sayPct(x){ const r=Math.round(Math.abs(x)*10)/10; return t("{n} pour cent",{n:sayNum(r)}); }
+/* "1,5 mètre" (French: plural from 2), "1.5 meters", "1,5 metros", "1,5 Meter". */
+function sayMeters(r, numTxt){ const L=curLang(), W={fr:["mètre","mètres"],en:["meter","meters"],es:["metro","metros"],de:["Meter","Meter"]}[L];
+  const one = L==="fr" ? r<2 : numTxt==="1"; return numTxt+" "+(one?W[0]:W[1]); }
+function sayDist(m){ if(m<1) return t("{n} centimètres",{n:Math.round(m*100)}); const r=Math.round(m*10)/10; return sayMeters(r, sayNum(r)); }
 function situationText(){
   const c=curCtx(); if(!c) return "";
   const dx=c.hole.x-c.start.x, dy=c.hole.y-c.start.y, L=Math.hypot(dx,dy)||1, u={x:dx/L,y:dy/L}, r={x:u.y,y:-u.x}, g=c.green;
   const along=-(g.down.x*u.x+g.down.y*u.y)*g.slope, side=(g.down.x*r.x+g.down.y*r.y)*g.slope;
-  let t="";
-  if(S.tab==="play"&&S.round){ const R=S.round; t+="À toi, "+pname(c.pid)+". Trou "+(R.hi+1)+". "+(R.strokes>0?"Putt numéro "+(R.strokes+1)+". ":""); }
-  else if(S.tab==="practice"&&S.practiceP){ t+="À toi, "+pname(S.practiceP)+". "; }
-  t+="Drapeau à "+sayDist(L)+". ";
-  t+= Math.abs(along)<0.3 ? "Putt à plat. " : (along>0?"En montée":"En descente")+", "+sayPct(along)+". ";
-  t+= Math.abs(side)<0.3 ? "Le putt est droit." : "Ça casse vers la "+(side>0?"droite":"gauche")+", "+sayPct(side)+".";
-  return t;
+  let s="";
+  if(S.tab==="play"&&S.round){ const R=S.round; s+=t("À toi, {name}. ",{name:pname(c.pid)})+t("Trou {n}. ",{n:R.hi+1})+(R.strokes>0?t("Putt numéro {n}. ",{n:R.strokes+1}):""); }
+  else if(S.tab==="practice"&&S.practiceP){ s+=t("À toi, {name}. ",{name:pname(S.practiceP)}); }
+  s+=t("Drapeau à {d}. ",{d:sayDist(L)});
+  s+= Math.abs(along)<0.3 ? t("Putt à plat. ") : t(along>0?"En montée":"En descente")+", "+sayPct(along)+". ";
+  s+= Math.abs(side)<0.3 ? t("Le putt est droit.") : t(side>0?"Ça casse vers la droite, {p}.":"Ça casse vers la gauche, {p}.",{p:sayPct(side)});
+  return s;
 }
 function speakSituation(force){
   if(!S.settings.voice || !window.speechSynthesis) return;
@@ -589,13 +865,15 @@ function speakSituation(force){
 }
 function speak(shot, sim){
   if(!S.settings.voice || !window.speechSynthesis) return;
-  let t = nf(shot.v,1)+" mètre seconde. ";
-  t += Math.abs(shot.dir)<0.25 ? "Départ droit. " : nf(Math.abs(shot.dir),1)+" degré"+(Math.abs(shot.dir)>=2?"s":"")+" à "+(shot.dir>0?"droite":"gauche")+". ";
-  sayText(t, true);
+  let s = t("{v} mètre seconde. ",{v:nf(shot.v,1)});
+  if(Math.abs(shot.dir)<0.25) s += t("Départ droit. ");
+  else { const L=curLang(), ad=Math.abs(shot.dir), deg={fr:ad>=2?"degrés":"degré",en:"degrees",es:"grados",de:"Grad"}[L];
+    s += t(shot.dir>0?"{n} {deg} à droite. ":"{n} {deg} à gauche. ",{n:nf(ad,1),deg}); }
+  sayText(s, true);
 }
 function speakResult(sim){
   if(!S.settings.voice) return;
-  sayText(sim.holed ? "Dans le trou !" : "Reste "+(sim.rest<1?Math.round(sim.rest*100)+" centimètres":nf(sim.rest,1)+" mètre"+(sim.rest>=2?"s":""))+".", false);
+  sayText(sim.holed ? t("Dans le trou !") : t("Reste {d}.",{d:sim.rest<1?t("{n} centimètres",{n:Math.round(sim.rest*100)}):sayMeters(sim.rest,nf(sim.rest,1))}), false);
 }
 /* Sound of a ball dropping into the cup, synthesized (no audio file): hollow plastic knock + a few rattles. */
 let AC=null;
@@ -787,6 +1065,7 @@ function drawGreen(){
   const keys=[[st.x,st.y,0],[ho.x,ho.y,0],[ho.x,ho.y,0.9]];
   keys.push([st.x+fw.x*(L+4.2), st.y+fw.y*(L+4.2), 0.85]);   // top of the boards behind the green
   for(const s0 of [-0.7,0.7]){ keys.push([st.x+rt.x*s0,st.y+rt.y*s0,0]); keys.push([ho.x+rt.x*s0,ho.y+rt.y*s0,0]); }
+  for(const o of (ctx.others||[])) keys.push([o.x,o.y,0]);
   if(last){ for(const q of last.sim.path) keys.push([q.x,q.y,0]); keys.push([last.sim.end.x,last.sim.end.y,0]); }
   let a0=1e9,a1=-1e9,b0=1e9,b1=-1e9;
   for(const k of keys){ const c=cam(...k); if(c[2]<0.2) continue; const px=c[0]/c[2], py=c[1]/c[2]; a0=Math.min(a0,px); a1=Math.max(a1,px); b0=Math.min(b0,py); b1=Math.max(b1,py); }
@@ -870,6 +1149,10 @@ function drawGreen(){
   const paint=tt=>{
     g.drawImage(bg,0,0,W,H);
     if(flow) drawBeads();
+    for(const o of (ctx.others||[])){ g.globalAlpha=0.85; ball(o); g.globalAlpha=1;
+      const q=P(o.x,o.y,0.06); if(q&&o.name){ g.font="600 11px system-ui,sans-serif"; const tw=g.measureText(o.name).width+10;
+        g.fillStyle="rgba(0,0,0,.45)"; g.beginPath(); (g.roundRect?g.roundRect(q[0]-tw/2,q[1]-22,tw,16,8):g.rect(q[0]-tw/2,q[1]-22,tw,16)); g.fill();
+        g.fillStyle="#fff"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(o.name,q[0],q[1]-14); g.textAlign="start"; } }
     if(!last){ ball(ctx.start); return true; }
     const path=last.sim.path; let k=0;
     g.strokeStyle="rgba(251,251,247,.85)"; g.lineWidth=2; g.beginPath(); let pen=false;
@@ -891,7 +1174,7 @@ function drawGreen(){
 function closest(sim, hole){ let m=1e9; for(const q of sim.path) m=Math.min(m,Math.hypot(q.x-hole.x,q.y-hole.y)); return m; }
 function showVerdict(){
   const L=S.last; if(!L||L.verdictShown) return; L.verdictShown=true;
-  const v=$("#verdict"); if(v){ v.textContent = L.sim.holed ? "Dans le trou !" : "Reste "+fmtM(L.sim.rest); }
+  const v=$("#verdict"); if(v){ v.textContent = L.sim.holed ? t("Dans le trou !") : t("Reste {d}",{d:fmtM(L.sim.rest)}); }
   const nearMiss=!L.sim.holed && closest(L.sim, L.ctx.hole)<=0.40;
   if(L.sim.holed) playCup(); else if(nearMiss) playOh();
   setTimeout(()=>speakResult(L.sim), L.sim.holed?1500:((nearMiss&&S.settings.sfx!==false)?1600:0));
@@ -901,6 +1184,9 @@ function showVerdict(){
 /* =================== views =================== */
 function render(){
   $("#camhost").appendChild(CAMWRAP);
+  document.documentElement.lang=curLang();
+  document.querySelectorAll("#tabs [data-l]").forEach(el=>{ el.textContent=t(el.dataset.l); });
+  refreshStatus();
   document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-current", b.dataset.tab===S.tab?"page":"false"));
   const v=$("#view");
   const live = (S.tab==="play" && S.round && !S.round.done) || (S.tab==="practice" && S.practice);
@@ -919,10 +1205,10 @@ function placeCam(){
 }
 function numsHtml(sh){
   return `<div class="nums">
-    <div class="num"><span>Vitesse</span><b>${sh?nf(sh.v,2):"–"}</b><small>m/s</small></div>
-    <div class="num"><span>Direction</span><b>${sh?dirTxt(sh.dir):"–"}</b><small>départ</small></div>
-    <div class="num"><span>Face</span><b>${sh?dirTxt(sh.face):"–"}</b><small>${sh?(sh.faceMeasured?"mesurée":"estimée"):"à l'impact"}</small></div>
-    <div class="num"><span>Distance</span><b>${sh?nf(sh.flat,1):"–"}</b><small>m à plat</small></div></div>`;
+    <div class="num"><span>${t("Vitesse")}</span><b>${sh?nf(sh.v,2):"–"}</b><small>m/s</small></div>
+    <div class="num"><span>${t("Direction")}</span><b>${sh?dirTxt(sh.dir):"–"}</b><small>${t("départ")}</small></div>
+    <div class="num"><span>${t("Face")}</span><b>${sh?dirTxt(sh.face):"–"}</b><small>${t(sh?(sh.faceMeasured?"mesurée":"estimée"):"à l'impact")}</small></div>
+    <div class="num"><span>${t("Distance")}</span><b>${sh?nf(sh.flat,1):"–"}</b><small>${t("m à plat")}</small></div></div>`;
 }
 function viewLive(){
   let head="", ctx;
@@ -930,36 +1216,36 @@ function viewLive(){
   if(S.tab==="play"){
     const R=S.round, h=R.holes[R.hi]; ctx=roundCtx();
     const D=Math.hypot(ctx.hole.x-ctx.start.x,ctx.hole.y-ctx.start.y);
-    head=`<div class="holeinfo"><div><div class="small muted">Trou ${R.hi+1}/${R.holes.length} · Par 2 · ${esc(pname(ctx.pid))} · coup ${S.last&&S.last.after?R.strokes:R.strokes+1}</div><div class="big">${fmtM(D)}</div></div>
-      <div class="small" style="text-align:right">${esc(readGreen(ctx.start,ctx.hole,h.green))}<br><span class="muted">Stimp ${h.green.stimp}</span> · <button class="linkbtn" data-act="listen">Écouter</button></div></div>`;
+    head=`<div class="holeinfo"><div><div class="small muted">${t("Trou {n}/{t}",{n:R.hi+1,t:R.holes.length})} · Par 2 · ${esc(pname(ctx.pid))} · ${t("coup {n}",{n:S.last&&S.last.after?R.strokes:R.strokes+1})}</div><div class="big">${fmtM(D)}</div></div>
+      <div class="small" style="text-align:right">${esc(readGreen(ctx.start,ctx.hole,h.green))}<br><span class="muted">Stimp ${nf(h.green.stimp,h.green.stimp%1?1:0)}</span> · <button class="linkbtn" data-act="listen">${t("Écouter")}</button></div></div>`;
   } else {
     const P=S.practice; ctx={hole:{x:0,y:P.D},start:{x:0,y:0},green:P.green};
-    head=`<div class="holeinfo"><div><div class="small muted">Entraînement · Stimp ${P.green.stimp}</div><div class="big">${fmtM(P.D)}</div></div>
-      <div class="small" style="text-align:right">${esc(readGreen(ctx.start,ctx.hole,P.green))}<br><button class="linkbtn" data-act="newgreen">Nouveau green</button> · <button class="linkbtn" data-act="listen">Écouter</button></div></div>`;
+    head=`<div class="holeinfo"><div><div class="small muted">${t("Entraînement")} · Stimp ${nf(P.green.stimp,P.green.stimp%1?1:0)}</div><div class="big">${fmtM(P.D)}</div></div>
+      <div class="small" style="text-align:right">${esc(readGreen(ctx.start,ctx.hole,P.green))}<br><button class="linkbtn" data-act="newgreen">${t("Nouveau green")}</button> · <button class="linkbtn" data-act="listen">${t("Écouter")}</button></div></div>`;
   }
   let h=`<div class="stack">${head}
     ${!S.settings.testMode&&S.camLarge?`<div class="stack"><div id="camslot" class="camlarge"></div>
-      <p class="small muted">${S.settings.calib?"Pose la balle dans le cercle pointillé. Touche-la pour la repérer à nouveau.":"<b>Touche la balle sur l'image</b> pour que l'appli la repère."}</p>
-      <div class="row"><button class="btn grow" data-act="togglecam">Voir le green</button>${S.settings.calib?`<button class="btn grow" data-act="recalib">Oublier la balle</button>`:""}</div></div>`:""}
-    <div class="greenwrap"><canvas id="green" aria-label="Green virtuel"></canvas><div id="verdict" class="verdict"></div>${!S.settings.testMode&&!S.camLarge?`<div id="camslot" class="inset" title="Agrandir la caméra"></div>`:""}</div>
+      <p class="small muted">${t(S.settings.calib?"Pose la balle dans le cercle pointillé. Touche-la pour la repérer à nouveau.":"<b>Touche la balle sur l'image</b> pour que l'appli la repère.")}</p>
+      <div class="row"><button class="btn grow" data-act="togglecam">${t("Voir le green")}</button>${S.settings.calib?`<button class="btn grow" data-act="recalib">${t("Oublier la balle")}</button>`:""}</div></div>`:""}
+    <div class="greenwrap"><canvas id="green" aria-label="${esc(t("Green virtuel"))}"></canvas><div id="verdict" class="verdict"></div>${!S.settings.testMode&&!S.camLarge?`<div id="camslot" class="inset" title="${esc(t("Agrandir la caméra"))}"></div>`:""}</div>
     ${numsHtml(S.last?S.last.shot:null)}
     ${impactHtml()}`;
   if(S.settings.testMode){
-    h+=`<div class="card stack"><h3>Mode test : simule un putt</h3>
-      <label class="small muted" for="tv">Vitesse de la balle : <b id="tvv">${nf(S.tv||1.8,2)} m/s</b></label><input type="range" id="tv" min="0.3" max="4" step="0.05" value="${S.tv||1.8}">
-      <label class="small muted" for="td">Direction de départ : <b id="tdv">${dirTxt(S.td||0)}</b></label><input type="range" id="td" min="-5" max="5" step="0.1" value="${S.td||0}">
-      <button class="btn primary block" data-act="testshot">Putter</button></div>`;
+    h+=`<div class="card stack"><h3>${t("Mode test : simule un putt")}</h3>
+      <label class="small muted" for="tv">${t("Vitesse de la balle : ")}<b id="tvv">${nf(S.tv||1.8,2)} m/s</b></label><input type="range" id="tv" min="0.3" max="4" step="0.05" value="${S.tv||1.8}">
+      <label class="small muted" for="td">${t("Direction de départ : ")}<b id="tdv">${dirTxt(S.td||0)}</b></label><input type="range" id="td" min="-5" max="5" step="0.1" value="${S.td||0}">
+      <button class="btn primary block" data-act="testshot">${t("Putter")}</button></div>`;
   }
-  h+=`<div class="row between"><button class="linkbtn" data-act="${S.tab==="play"?"quitround":"quitpractice"}">${S.tab==="play"?"Quitter la partie":"Arrêter l'entraînement"}</button>
-    ${S.tab==="play"?`<button class="linkbtn" data-act="scorecard">Carte de score</button>`:""}</div>`;
+  h+=`<div class="row between"><button class="linkbtn" data-act="${S.tab==="play"?"quitround":"quitpractice"}">${t(S.tab==="play"?"Quitter la partie":"Arrêter l'entraînement")}</button>
+    ${S.tab==="play"?`<button class="linkbtn" data-act="scorecard">${t("Carte de score")}</button>`:""}</div>`;
   if(S.tab==="play" && S.showCard) h+=scorecardHtml(S.round);
   h+=`</div>`;
   return h;
 }
 function scorecardHtml(R){
   const n=R.holes.length;
-  return `<div class="card tablewrap"><table><thead><tr><th>Joueur</th>${R.holes.map((_,i)=>`<th>${i+1}</th>`).join("")}<th>Total</th></tr></thead><tbody>
-    <tr><td class="muted">Distance</td>${R.holes.map(h=>`<td class="muted small">${nf(h.D,1)}</td>`).join("")}<td></td></tr>
+  return `<div class="card tablewrap"><table><thead><tr><th>${t("Joueur")}</th>${R.holes.map((_,i)=>`<th>${i+1}</th>`).join("")}<th>${t("Total")}</th></tr></thead><tbody>
+    <tr><td class="muted">${t("Distance")}</td>${R.holes.map(h=>`<td class="muted small">${nf(h.D,1)}</td>`).join("")}<td></td></tr>
     ${R.players.map(p=>{ const sc=R.scores[p]; const tot=sc.reduce((a,b)=>a+(b||0),0); const par=sc.filter(x=>x!=null).length*2;
       return `<tr><td><b>${esc(pname(p))}</b></td>${R.holes.map((_,i)=>`<td class="${!R.done&&i===R.hi&&R.players[R.pi]===p?"cur":""}">${sc[i]!=null?sc[i]:""}</td>`).join("")}<td><b>${tot}</b> <span class="small muted">(${tot-par>0?"+":""}${tot-par})</span></td></tr>`; }).join("")}
   </tbody></table></div>`;
@@ -967,140 +1253,143 @@ function scorecardHtml(R){
 function viewRoundEnd(){
   const R=S.round;
   const rows=R.players.map(p=>({p,tot:R.scores[p].reduce((a,b)=>a+(b||0),0)})).sort((a,b)=>a.tot-b.tot);
-  return `<h2 style="margin-top:4px">Partie terminée</h2><div class="stack">
-    ${rows.map((r,i)=>`<div class="card row between"><div><h3>${rows.length>1?(i+1)+". ":""}${esc(pname(r.p))}</h3><p class="small muted">${R.holes.length} trous · par ${R.holes.length*2}</p></div><div class="level">${r.tot} putts (${r.tot-R.holes.length*2>0?"+":""}${r.tot-R.holes.length*2})</div></div>`).join("")}
+  return `<h2 style="margin-top:4px">${t("Partie terminée")}</h2><div class="stack">
+    ${rows.map((r,i)=>`<div class="card row between"><div><h3>${rows.length>1?(i+1)+". ":""}${esc(pname(r.p))}</h3><p class="small muted">${t("{n} trous · par {p}",{n:R.holes.length,p:R.holes.length*2})}</p></div><div class="level">${t("{n} putts",{n:r.tot})} (${r.tot-R.holes.length*2>0?"+":""}${r.tot-R.holes.length*2})</div></div>`).join("")}
     ${scorecardHtml(R)}
-    <div class="row"><button class="btn primary big grow" data-act="replay">Nouvelle partie</button><button class="btn big grow" data-act="closeround">Terminé</button></div></div>`;
+    <div class="row"><button class="btn primary big grow" data-act="replay">${t("Nouvelle partie")}</button><button class="btn big grow" data-act="closeround">${t("Terminé")}</button></div></div>`;
 }
 function playersPicker(sel, act){
   return `<div class="row">${S.players.map(p=>`<button class="chip" data-act="${act}" data-id="${p.id}" aria-pressed="${sel.includes(p.id)}">${esc(p.name)}</button>`).join("")}</div>`;
 }
 function setupTip(){
-  return `<div class="tip"><b>Installer le téléphone</b><ul>
-    <li>Fixe-le <b>en face de toi, de l'autre côté de la ligne de putt</b>, à environ <b>80 cm – 1 m de haut</b>, caméra vers le sol, écran tourné vers toi.</li>
-    <li>Sur l'image, la balle part <b>vers la gauche</b> si tu es droitier (vers la droite si tu es gaucher) : choisis le sens dans Réglages.</li>
-    <li>Pose la balle <b>près du bord de l'image opposé à la cible</b>, pour qu'elle reste visible le plus longtemps.</li>
-    <li>Au premier putt, <b>touche la balle sur l'image</b> : l'appli retient sa taille et sa place. Ensuite, repose chaque balle au même endroit.</li>
-    <li>Balle blanche, tapis uni, bonne lumière, sans objet blanc près de la balle.</li></ul></div>`;
+  return `<div class="tip"><b>${t("Installer le téléphone")}</b><ul>
+    <li>${t("Fixe-le <b>en face de toi, de l'autre côté de la ligne de putt</b>, à environ <b>80 cm – 1 m de haut</b>, caméra vers le sol, écran tourné vers toi.")}</li>
+    <li>${t("Sur l'image, la balle part <b>vers la gauche</b> si tu es droitier (vers la droite si tu es gaucher) : choisis le sens dans Réglages.")}</li>
+    <li>${t("Pose la balle <b>près du bord de l'image opposé à la cible</b>, pour qu'elle reste visible le plus longtemps.")}</li>
+    <li>${t("Au premier putt, <b>touche la balle sur l'image</b> : l'appli retient sa taille et sa place. Ensuite, repose chaque balle au même endroit.")}</li>
+    <li>${t("Balle blanche, tapis uni, bonne lumière, sans objet blanc près de la balle.")}</li></ul></div>`;
 }
 function viewPlaySetup(){
   if(!S.players.length) return firstPlayer();
   S.setupP = S.setupP && S.setupP.length ? S.setupP.filter(id=>S.players.some(p=>p.id===id)) : [S.players[0].id];
   S.setupN = S.setupN||9;
-  return `<h2 style="margin-top:4px">Parcours de putting</h2>
-  <p class="muted" style="margin-bottom:12px">Chaque trou a une distance et une pente différentes. Tu puttes pour de vrai sur ton tapis, la balle virtuelle roule sur le green. Par 2 par trou.</p>
-  <div class="card stack"><h3>Joueurs</h3>${playersPicker(S.setupP,"setupplayer")}<p class="small muted">${S.setupP.length>1?"Chacun termine le trou avant le joueur suivant.":"Ajoute des joueurs dans Réglages pour jouer à plusieurs."}</p>
-  <h3 style="margin-top:6px">Nombre de trous</h3><div class="row">${[3,9,18].map(n=>`<button class="chip" data-act="setn" data-n="${n}" aria-pressed="${S.setupN===n}">${n} trous</button>`).join("")}</div></div>
-  <button class="btn primary block big" style="margin-top:14px" data-act="startround" ${S.setupP.length?"":"disabled"}>Commencer la partie</button>
-  <h2>Avant de jouer</h2>${setupTip()}`;
+  return `<h2 style="margin-top:4px">${t("Parcours de putting")}</h2>
+  <p class="muted" style="margin-bottom:12px">${t("Chaque trou a une distance et une pente différentes. Tu puttes pour de vrai sur ton tapis, la balle virtuelle roule sur le green. Par 2 par trou.")}</p>
+  <div class="card stack"><h3>${t("Joueurs")}</h3>${playersPicker(S.setupP,"setupplayer")}<p class="small muted">${t(S.setupP.length>1?"Chacun termine le trou avant le joueur suivant.":"Ajoute des joueurs dans Réglages pour jouer à plusieurs.")}</p>
+  <h3 style="margin-top:6px">${t("Nombre de trous")}</h3><div class="row">${[3,9,18].map(n=>`<button class="chip" data-act="setn" data-n="${n}" aria-pressed="${S.setupN===n}">${t("{n} trous",{n})}</button>`).join("")}</div></div>
+  <button class="btn primary block big" style="margin-top:14px" data-act="startround" ${S.setupP.length?"":"disabled"}>${t("Commencer la partie")}</button>
+  <h2>${t("Avant de jouer")}</h2>${setupTip()}`;
 }
 function viewPracticeSetup(){
   if(!S.players.length) return firstPlayer();
   const st=S.settings;
-  return `<h2 style="margin-top:4px">Entraînement</h2>
-  <p class="muted" style="margin-bottom:12px">Toujours le même putt : idéal pour travailler ta vitesse, ta direction et ta face.</p>
-  <div class="card stack"><h3>Distance du trou</h3><div class="stepper"><button data-act="pd" data-v="-0.5" aria-label="Moins 0,5 m">−</button><b>${nf(st.practiceD,1)} m</b><button data-act="pd" data-v="0.5" aria-label="Plus 0,5 m">+</button></div>
-  <h3 style="margin-top:6px">Green</h3><div class="row"><button class="chip" data-act="pslope" data-v="flat" aria-pressed="${st.practiceSlope==="flat"}">À plat</button><button class="chip" data-act="pslope" data-v="random" aria-pressed="${st.practiceSlope==="random"}">Avec pente</button></div>
-  ${S.players.length>1?`<h3 style="margin-top:6px">Qui s'entraîne ?</h3>${playersPicker([S.practiceP||S.players[0].id],"practicep")}`:""}</div>
-  <button class="btn primary block big" style="margin-top:14px" data-act="startpractice">Démarrer</button>
-  <h2>Avant de jouer</h2>${setupTip()}`;
+  return `<h2 style="margin-top:4px">${t("Entraînement")}</h2>
+  <p class="muted" style="margin-bottom:12px">${t("Toujours le même putt : idéal pour travailler ta vitesse, ta direction et ta face.")}</p>
+  <div class="card stack"><h3>${t("Distance du trou")}</h3><div class="stepper"><button data-act="pd" data-v="-0.5" aria-label="${esc(t("Moins {d} m",{d:nf(0.5,1)}))}">−</button><b>${nf(st.practiceD,1)} m</b><button data-act="pd" data-v="0.5" aria-label="${esc(t("Plus {d} m",{d:nf(0.5,1)}))}">+</button></div>
+  <h3 style="margin-top:6px">${t("Green")}</h3><div class="row"><button class="chip" data-act="pslope" data-v="flat" aria-pressed="${st.practiceSlope==="flat"}">${t("À plat")}</button><button class="chip" data-act="pslope" data-v="random" aria-pressed="${st.practiceSlope==="random"}">${t("Avec pente")}</button></div>
+  ${S.players.length>1?`<h3 style="margin-top:6px">${t("Qui s'entraîne ?")}</h3>${playersPicker([S.practiceP||S.players[0].id],"practicep")}`:""}</div>
+  <button class="btn primary block big" style="margin-top:14px" data-act="startpractice">${t("Démarrer")}</button>
+  <h2>${t("Avant de jouer")}</h2>${setupTip()}`;
 }
 function firstPlayer(){
-  return `<div class="card stack" style="margin-top:6px"><h3>Bienvenue dans Square Face Putting</h3><p class="muted">Ajoute ton prénom pour commencer. Tout reste sur ce téléphone.</p>
-  <div class="row"><input type="text" id="firstname" class="grow" value="Benito" aria-label="Prénom"><button class="btn primary" data-act="addfirst">C'est parti</button></div></div>`;
+  return `<div class="card stack" style="margin-top:6px"><h3>${t("Bienvenue dans Square Face Putting")}</h3><p class="muted">${t("Ajoute ton prénom pour commencer. Tout reste sur ce téléphone.")}</p>
+  <div class="row"><input type="text" id="firstname" class="grow" value="Benito" aria-label="${esc(t("Prénom"))}"><button class="btn primary" data-act="addfirst">${t("C'est parti")}</button></div></div>`;
 }
 function stat(arr){ if(!arr.length) return {m:null,sd:null}; const m=arr.reduce((a,b)=>a+b,0)/arr.length; const sd=Math.sqrt(arr.reduce((a,b)=>a+(b-m)**2,0)/arr.length); return {m,sd}; }
 function viewStats(){
-  if(!S.players.length) return `<div class="empty">Ajoute un joueur pour commencer.</div>`;
+  if(!S.players.length) return `<div class="empty">${t("Ajoute un joueur pour commencer.")}</div>`;
   const pid=S.statP, shots=S.shots.filter(s=>pid==="all"||s.p===pid);
-  let h=`<div class="row" style="margin:4px 0 8px"><button class="chip" data-act="statp" data-id="all" aria-pressed="${pid==="all"}">Tous</button>${S.players.map(p=>`<button class="chip" data-act="statp" data-id="${p.id}" aria-pressed="${pid===p.id}">${esc(p.name)}</button>`).join("")}</div>`;
-  if(!shots.length) return h+`<div class="empty card">Aucun putt mesuré pour l'instant.</div>`;
+  let h=`<div class="row" style="margin:4px 0 8px"><button class="chip" data-act="statp" data-id="all" aria-pressed="${pid==="all"}">${t("Tous")}</button>${S.players.map(p=>`<button class="chip" data-act="statp" data-id="${p.id}" aria-pressed="${pid===p.id}">${esc(p.name)}</button>`).join("")}</div>`;
+  if(!shots.length) return h+`<div class="empty card">${t("Aucun putt mesuré pour l'instant.")}</div>`;
   const dir=stat(shots.map(s=>s.dir)), face=stat(shots.map(s=>s.face)), holed=shots.filter(s=>s.holed).length;
   const within1=shots.filter(s=>Math.abs(s.dir)<=1).length;
   const short=shots.filter(s=>!s.holed&&s.along<0).length, long=shots.filter(s=>!s.holed&&s.along>0).length;
   h+=`<div class="kpis">
-    <div class="kpi"><span>Putts mesurés</span><b>${shots.length}</b></div>
-    <div class="kpi"><span>Rentrés</span><b>${Math.round(100*holed/shots.length)} %</b></div>
-    <div class="kpi"><span>Direction moyenne</span><b>${dirTxt(dir.m)}</b><span>dispersion ±${nf(dir.sd,1)}°</span></div>
-    <div class="kpi"><span>Face moyenne</span><b>${dirTxt(face.m)}</b><span>dispersion ±${nf(face.sd,1)}°</span></div>
-    <div class="kpi"><span>Départ à ±1°</span><b>${Math.round(100*within1/shots.length)} %</b></div>
-    <div class="kpi"><span>Ratés court / long</span><b>${short} / ${long}</b></div></div>`;
+    <div class="kpi"><span>${t("Putts mesurés")}</span><b>${shots.length}</b></div>
+    <div class="kpi"><span>${t("Rentrés")}</span><b>${t("{n} %",{n:Math.round(100*holed/shots.length)})}</b></div>
+    <div class="kpi"><span>${t("Direction moyenne")}</span><b>${dirTxt(dir.m)}</b><span>${t("dispersion ±{n}°",{n:nf(dir.sd,1)})}</span></div>
+    <div class="kpi"><span>${t("Face moyenne")}</span><b>${dirTxt(face.m)}</b><span>${t("dispersion ±{n}°",{n:nf(face.sd,1)})}</span></div>
+    <div class="kpi"><span>${t("Départ à ±1°")}</span><b>${t("{n} %",{n:Math.round(100*within1/shots.length)})}</b></div>
+    <div class="kpi"><span>${t("Ratés court / long")}</span><b>${short} / ${long}</b></div></div>`;
   // start direction histogram
   const bins=[-3,-2,-1,0,1,2,3], counts=bins.map(b=>shots.filter(s=>Math.round(Math.max(-3,Math.min(3,s.dir)))===b).length), mx=Math.max(1,...counts);
   const W=320,H=150,bw=(W-20)/bins.length;
-  let svg=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Répartition de la direction de départ">`;
+  let svg=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(t("Répartition de la direction de départ"))}">`;
   bins.forEach((b,i)=>{ const hh=(H-40)*counts[i]/mx, x=10+i*bw+bw*0.15, w=bw*0.7, y=H-26-hh;
-    svg+=`<rect x="${x}" y="${y}" width="${w}" height="${Math.max(1,hh)}" rx="4" fill="${b===0?"var(--green)":"var(--flag)"}"/>${counts[i]?`<text x="${x+w/2}" y="${y-4}" font-size="11" text-anchor="middle" style="fill:var(--ink)">${counts[i]}</text>`:""}<text x="${x+w/2}" y="${H-10}" font-size="11" text-anchor="middle">${b===0?"0°":(b<0?Math.abs(b)+(b===-3?"+":"")+"° G":b+(b===3?"+":"")+"° D")}</text>`; });
+    svg+=`<rect x="${x}" y="${y}" width="${w}" height="${Math.max(1,hh)}" rx="4" fill="${b===0?"var(--green)":"var(--flag)"}"/>${counts[i]?`<text x="${x+w/2}" y="${y-4}" font-size="11" text-anchor="middle" style="fill:var(--ink)">${counts[i]}</text>`:""}<text x="${x+w/2}" y="${H-10}" font-size="11" text-anchor="middle">${b===0?"0°":(b<0?Math.abs(b)+(b===-3?"+":"")+"° "+SIDES[curLang()][1]:b+(b===3?"+":"")+"° "+SIDES[curLang()][0])}</text>`; });
   svg+=`</svg>`;
-  h+=`<h2>Direction de départ</h2><div class="card">${svg}</div>`;
-  h+=`<h2>Derniers putts</h2><div class="card tablewrap"><table><thead><tr><th>Quand</th><th>Vitesse</th><th>Dir.</th><th>Face</th><th>Dist.</th><th>Résultat</th></tr></thead><tbody>
-   ${shots.slice(-25).reverse().map(s=>`<tr><td class="small">${new Date(s.t).toLocaleDateString("fr-FR",{day:"numeric",month:"short"})} ${new Date(s.t).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}</td><td>${nf(s.v,2)}</td><td>${dirTxt(s.dir)}</td><td>${dirTxt(s.face)}${s.faceMeasured?"":"*"}</td><td>${nf(s.flat,1)} m</td><td>${s.holed?"Rentré":fmtM(s.rest)}</td></tr>`).join("")}
-  </tbody></table></div><p class="small muted" style="margin-top:6px">* face estimée à partir de la direction de départ. Distance : à plat, au Stimp choisi.</p>`;
+  h+=`<h2>${t("Direction de départ")}</h2><div class="card">${svg}</div>`;
+  h+=`<h2>${t("Derniers putts")}</h2><div class="card tablewrap"><table><thead><tr><th>${t("Quand")}</th><th>${t("Vitesse")}</th><th>${t("Dir.")}</th><th>${t("Face")}</th><th>${t("Dist.")}</th><th>${t("Résultat")}</th></tr></thead><tbody>
+   ${shots.slice(-25).reverse().map(s=>`<tr><td class="small">${new Date(s.t).toLocaleDateString(LOC[curLang()],{day:"numeric",month:"short"})} ${new Date(s.t).toLocaleTimeString(LOC[curLang()],{hour:"2-digit",minute:"2-digit"})}</td><td>${nf(s.v,2)}</td><td>${dirTxt(s.dir)}</td><td>${dirTxt(s.face)}${s.faceMeasured?"":"*"}</td><td>${nf(s.flat,1)} m</td><td>${s.holed?t("Rentré"):fmtM(s.rest)}</td></tr>`).join("")}
+  </tbody></table></div><p class="small muted" style="margin-top:6px">${t("* face estimée à partir de la direction de départ. Distance : à plat, au Stimp choisi.")}</p>`;
   return h;
 }
 function viewSettings(){
-  const st=S.settings;
-  return `<h2 style="margin-top:4px">Réglages</h2><div class="stack">
-  <div class="card stack"><h3>Vitesse du green (Stimp)</h3><div class="stepper"><button data-act="stimp" data-v="-0.5" aria-label="Moins rapide">−</button><b>${nf(st.stimp,1)}</b><button data-act="stimp" data-v="0.5" aria-label="Plus rapide">+</button></div>
-    <p class="small muted">8 = green lent, 10 = moyen, 12 = rapide. Sert à calculer la distance parcourue.</p></div>
-  <div class="card stack"><h3>Sens du putt sur l'image</h3><div class="row">
-    <button class="chip" data-act="putdir" data-v="up" aria-pressed="${st.putDir==="up"}">↑ Vers le haut</button>
-    <button class="chip" data-act="putdir" data-v="down" aria-pressed="${st.putDir==="down"}">↓ Vers le bas</button>
-    <button class="chip" data-act="putdir" data-v="left" aria-pressed="${st.putDir==="left"}">← Vers la gauche</button>
-    <button class="chip" data-act="putdir" data-v="right" aria-pressed="${st.putDir==="right"}">Vers la droite →</button></div>
-    <p class="small muted">Téléphone posé <b>dans la longueur, dans le sens du putt</b> : <b>vers le haut</b> si le haut du téléphone pointe vers la cible, <b>vers le bas</b> s'il pointe vers toi. <b>Gauche / droite</b> : téléphone posé en travers de la ligne.</p></div>
-  <div class="card stack"><h3>Correction de visée</h3><div class="stepper"><button data-act="aim" data-v="-0.5" aria-label="Tourner à gauche">−</button><b>${dirTxt(st.aimDeg)}</b><button data-act="aim" data-v="0.5" aria-label="Tourner à droite">+</button></div>
-    <p class="small muted">Si le téléphone n'est pas parfaitement parallèle à ta ligne, tourne la ligne jaune affichée sur l'image de la caméra jusqu'à ce qu'elle pointe vers la cible.</p>
-    <button class="btn" data-act="recalib">Oublier la balle repérée</button></div>
-  <div class="card stack"><h3>Étalonnage des distances</h3><div class="stepper"><button data-act="distk" data-v="-0.1" aria-label="Diminuer">−</button><b>× ${nf(st.distK||1,1)}</b><button data-act="distk" data-v="0.1" aria-label="Augmenter">+</button></div>
-    <p class="small muted">Multiplie les distances mesurées pour coller à ton tapis. Le plus précis : putte une balle, mesure la distance qu'elle a vraiment roulée et entre-la ci-dessous.</p>
-    ${S.shots.length?`<div class="row"><input type="number" id="realdist" step="0.1" min="0.3" max="40" placeholder="Distance réelle du dernier putt (m)" class="grow" aria-label="Distance réelle du dernier putt en mètres"><button class="btn" data-act="calibk">Étalonner</button></div>
-    <p class="small muted">Dernier putt : ${nf(S.shots[S.shots.length-1].flat,1)} m calculés.</p>`:""}</div>
-  <div class="card switch"><label for="voice"><h3>Annonce vocale</h3><p class="small muted">Le téléphone annonce la vitesse, la direction et le résultat.</p></label><input type="checkbox" id="voice" ${st.voice?"checked":""}></div>
-  <div class="card switch"><label for="sfx"><h3>Bruitages</h3><p class="small muted">Balle dans le trou et applaudissements, foule déçue quand le putt est raté.</p></label><input type="checkbox" id="sfx" ${st.sfx!==false?"checked":""}></div>
-  <div class="card stack"><h3>Son des applaudissements</h3>
-    <p class="small muted">${(()=>{try{return localStorage.getItem("puttlab-applause")?"Ton propre son est utilisé.":"Son intégré à l'appli.";}catch(e){return "";}})()} Tu peux choisir un fichier d'applaudissements (mp3, m4a, wav) téléchargé sur ton téléphone, par exemple sur un site de bruitages gratuits.</p>
-    <div class="row"><label class="btn grow" style="position:relative;overflow:hidden">Choisir un fichier<input type="file" accept="audio/*" id="applfile" style="position:absolute;inset:0;opacity:0"></label><button class="btn grow" data-act="appltest">Écouter</button></div>
-    ${(()=>{try{return localStorage.getItem("puttlab-applause")?'<button class="linkbtn" data-act="applreset">Revenir au son intégré</button>':"";}catch(e){return "";}})()}</div>
-  <div class="card stack"><h3>Son du putt raté</h3>
-    <p class="small muted">${hasOh()?"Ton propre son est utilisé.":"Son intégré à l'appli (foule déçue)."} Tu peux choisir un autre fichier son (mp3, m4a, wav, de quelques secondes) enregistré sur ton téléphone.</p>
-    <div class="row"><label class="btn grow" style="position:relative;overflow:hidden">Choisir un fichier<input type="file" accept="audio/*" id="ohfile" style="position:absolute;inset:0;opacity:0"></label><button class="btn grow" data-act="ohtest">Écouter</button></div>
-    ${hasOh()?'<button class="linkbtn" data-act="ohreset">Revenir au son intégré</button>':""}</div>
-  <div class="card stack"><h3>Choix de la voix</h3>
-    ${(()=>{ const vs=frVoices(); return vs.length?`<select id="voicesel" style="border:1px solid var(--line);background:var(--surface2);border-radius:10px;padding:10px 12px;min-height:46px;width:100%" aria-label="Voix"><option value="">Voix par défaut du téléphone</option>${vs.map(v=>`<option value="${esc(v.voiceURI)}" ${st.voiceURI===v.voiceURI?"selected":""}>${esc(voiceLabel(v))}</option>`).join("")}</select>`:`<p class="small muted">Aucune voix trouvée pour l'instant. Rouvre cette page dans quelques secondes.</p>`; })()}
-    <label class="small muted" for="vpitch">Ton : plus grave ← → plus aigu</label><input type="range" id="vpitch" min="0.5" max="1.6" step="0.05" value="${st.vPitch||1}">
-    <label class="small muted" for="vrate">Vitesse de parole</label><input type="range" id="vrate" min="0.7" max="1.4" step="0.05" value="${st.vRate||1}">
-    <button class="btn" data-act="voicetest">Écouter un exemple</button>
-    <p class="small muted">Les voix proposées dépendent de ton téléphone. Pour en avoir d'autres (homme ou femme) : sur iPhone, Réglages › Accessibilité › Contenu énoncé › Voix › Français ; sur Android, Paramètres › Synthèse vocale.</p></div>
-  <div class="card switch"><label for="testmode"><h3>Mode test sans caméra</h3><p class="small muted">Pour essayer le jeu avec des curseurs.</p></label><input type="checkbox" id="testmode" ${st.testMode?"checked":""}></div>
-  <div class="card stack"><h3>Joueurs</h3>
-    ${S.players.map(p=>`<div class="row between"><b>${esc(p.name)}</b>${S.confirmDel===p.id?`<span class="row"><button class="btn" data-act="delplayer" data-id="${p.id}">Supprimer</button><button class="btn" data-act="canceldel">Non</button></span>`:`<button class="linkbtn" data-act="askdel" data-id="${p.id}">Supprimer</button>`}</div>`).join("")}
-    <div class="row"><input type="text" id="newplayer" class="grow" placeholder="Prénom du joueur" aria-label="Prénom du nouveau joueur"><button class="btn primary" data-act="addplayer">Ajouter</button></div></div>
-  <div class="card stack"><h3>Sauvegarde</h3><p class="small muted">Tout reste sur ce téléphone, sans compte. Exporte un fichier de temps en temps pour ne rien perdre.</p>
-    <div class="row"><button class="btn grow" data-act="export">Exporter</button><label class="btn grow" style="position:relative;overflow:hidden">Importer<input type="file" accept="application/json,.json" id="importinput" style="position:absolute;inset:0;opacity:0"></label></div></div>
+  const st=S.settings, lg=st.lang||"auto";
+  return `<h2 style="margin-top:4px">${t("Réglages")}</h2><div class="stack">
+  <div class="card stack"><h3>${t("Langue")}</h3><div class="row">
+    ${[["auto",t("Automatique")],["fr","Français"],["en","English"],["es","Español"],["de","Deutsch"]].map(([v,l])=>`<button class="chip" data-act="lang" data-v="${v}" aria-pressed="${lg===v}"${v!=="auto"?` lang="${v}"`:""}>${esc(l)}</button>`).join("")}</div>
+    <p class="small muted">${t("La langue s'applique aussi aux annonces vocales. Automatique : celle du téléphone.")}</p></div>
+  <div class="card stack"><h3>${t("Vitesse du green (Stimp)")}</h3><div class="stepper"><button data-act="stimp" data-v="-0.5" aria-label="${esc(t("Moins rapide"))}">−</button><b>${nf(st.stimp,1)}</b><button data-act="stimp" data-v="0.5" aria-label="${esc(t("Plus rapide"))}">+</button></div>
+    <p class="small muted">${t("8 = green lent, 10 = moyen, 12 = rapide. Sert à calculer la distance parcourue.")}</p></div>
+  <div class="card stack"><h3>${t("Sens du putt sur l'image")}</h3><div class="row">
+    <button class="chip" data-act="putdir" data-v="up" aria-pressed="${st.putDir==="up"}">${t("↑ Vers le haut")}</button>
+    <button class="chip" data-act="putdir" data-v="down" aria-pressed="${st.putDir==="down"}">${t("↓ Vers le bas")}</button>
+    <button class="chip" data-act="putdir" data-v="left" aria-pressed="${st.putDir==="left"}">${t("← Vers la gauche")}</button>
+    <button class="chip" data-act="putdir" data-v="right" aria-pressed="${st.putDir==="right"}">${t("Vers la droite →")}</button></div>
+    <p class="small muted">${t("Téléphone posé <b>dans la longueur, dans le sens du putt</b> : <b>vers le haut</b> si le haut du téléphone pointe vers la cible, <b>vers le bas</b> s'il pointe vers toi. <b>Gauche / droite</b> : téléphone posé en travers de la ligne.")}</p></div>
+  <div class="card stack"><h3>${t("Correction de visée")}</h3><div class="stepper"><button data-act="aim" data-v="-0.5" aria-label="${esc(t("Tourner à gauche"))}">−</button><b>${dirTxt(st.aimDeg)}</b><button data-act="aim" data-v="0.5" aria-label="${esc(t("Tourner à droite"))}">+</button></div>
+    <p class="small muted">${t("Si le téléphone n'est pas parfaitement parallèle à ta ligne, tourne la ligne jaune affichée sur l'image de la caméra jusqu'à ce qu'elle pointe vers la cible.")}</p>
+    <button class="btn" data-act="recalib">${t("Oublier la balle repérée")}</button></div>
+  <div class="card stack"><h3>${t("Étalonnage des distances")}</h3><div class="stepper"><button data-act="distk" data-v="-0.1" aria-label="${esc(t("Diminuer"))}">−</button><b>× ${nf(st.distK||1,1)}</b><button data-act="distk" data-v="0.1" aria-label="${esc(t("Augmenter"))}">+</button></div>
+    <p class="small muted">${t("Multiplie les distances mesurées pour coller à ton tapis. Le plus précis : putte une balle, mesure la distance qu'elle a vraiment roulée et entre-la ci-dessous.")}</p>
+    ${S.shots.length?`<div class="row"><input type="number" id="realdist" step="0.1" min="0.3" max="40" placeholder="${esc(t("Distance réelle du dernier putt (m)"))}" class="grow" aria-label="${esc(t("Distance réelle du dernier putt en mètres"))}"><button class="btn" data-act="calibk">${t("Étalonner")}</button></div>
+    <p class="small muted">${t("Dernier putt : {d} m calculés.",{d:nf(S.shots[S.shots.length-1].flat,1)})}</p>`:""}</div>
+  <div class="card switch"><label for="voice"><h3>${t("Annonce vocale")}</h3><p class="small muted">${t("Le téléphone annonce la vitesse, la direction et le résultat.")}</p></label><input type="checkbox" id="voice" ${st.voice?"checked":""}></div>
+  <div class="card switch"><label for="sfx"><h3>${t("Bruitages")}</h3><p class="small muted">${t("Balle dans le trou et applaudissements, foule déçue quand le putt est raté.")}</p></label><input type="checkbox" id="sfx" ${st.sfx!==false?"checked":""}></div>
+  <div class="card stack"><h3>${t("Son des applaudissements")}</h3>
+    <p class="small muted">${(()=>{try{return localStorage.getItem("puttlab-applause")?t("Ton propre son est utilisé."):t("Son intégré à l'appli.");}catch(e){return "";}})()} ${t("Tu peux choisir un fichier d'applaudissements (mp3, m4a, wav) téléchargé sur ton téléphone, par exemple sur un site de bruitages gratuits.")}</p>
+    <div class="row"><label class="btn grow" style="position:relative;overflow:hidden">${t("Choisir un fichier")}<input type="file" accept="audio/*" id="applfile" style="position:absolute;inset:0;opacity:0"></label><button class="btn grow" data-act="appltest">${t("Écouter")}</button></div>
+    ${(()=>{try{return localStorage.getItem("puttlab-applause")?'<button class="linkbtn" data-act="applreset">'+t("Revenir au son intégré")+'</button>':"";}catch(e){return "";}})()}</div>
+  <div class="card stack"><h3>${t("Son du putt raté")}</h3>
+    <p class="small muted">${hasOh()?t("Ton propre son est utilisé."):t("Son intégré à l'appli (foule déçue).")} ${t("Tu peux choisir un autre fichier son (mp3, m4a, wav, de quelques secondes) enregistré sur ton téléphone.")}</p>
+    <div class="row"><label class="btn grow" style="position:relative;overflow:hidden">${t("Choisir un fichier")}<input type="file" accept="audio/*" id="ohfile" style="position:absolute;inset:0;opacity:0"></label><button class="btn grow" data-act="ohtest">${t("Écouter")}</button></div>
+    ${hasOh()?'<button class="linkbtn" data-act="ohreset">'+t("Revenir au son intégré")+'</button>':""}</div>
+  <div class="card stack"><h3>${t("Choix de la voix")}</h3>
+    ${(()=>{ const vs=langVoices(), cur=pickVoice(false), sel=cur?cur.voiceURI:st.voiceURI; return vs.length?`<select id="voicesel" style="border:1px solid var(--line);background:var(--surface2);border-radius:10px;padding:10px 12px;min-height:46px;width:100%" aria-label="${esc(t("Voix"))}"><option value="">${t("Voix par défaut du téléphone")}</option>${vs.map(v=>`<option value="${esc(v.voiceURI)}" ${sel===v.voiceURI?"selected":""}>${esc(voiceLabel(v))}</option>`).join("")}</select>`:`<p class="small muted">${t("Aucune voix trouvée pour l'instant. Rouvre cette page dans quelques secondes.")}</p>`; })()}
+    <label class="small muted" for="vpitch">${t("Ton : plus grave ← → plus aigu")}</label><input type="range" id="vpitch" min="0.5" max="1.6" step="0.05" value="${st.vPitch||1}">
+    <label class="small muted" for="vrate">${t("Vitesse de parole")}</label><input type="range" id="vrate" min="0.7" max="1.4" step="0.05" value="${st.vRate||1}">
+    <button class="btn" data-act="voicetest">${t("Écouter un exemple")}</button>
+    <p class="small muted">${t("Les voix proposées dépendent de ton téléphone. Pour en avoir d'autres (homme ou femme) : sur iPhone, Réglages › Accessibilité › Contenu énoncé › Voix › Français ; sur Android, Paramètres › Synthèse vocale.")}</p></div>
+  <div class="card switch"><label for="testmode"><h3>${t("Mode test sans caméra")}</h3><p class="small muted">${t("Pour essayer le jeu avec des curseurs.")}</p></label><input type="checkbox" id="testmode" ${st.testMode?"checked":""}></div>
+  <div class="card stack"><h3>${t("Joueurs")}</h3>
+    ${S.players.map(p=>`<div class="row between"><b>${esc(p.name)}</b>${S.confirmDel===p.id?`<span class="row"><button class="btn" data-act="delplayer" data-id="${p.id}">${t("Supprimer")}</button><button class="btn" data-act="canceldel">${t("Non")}</button></span>`:`<button class="linkbtn" data-act="askdel" data-id="${p.id}">${t("Supprimer")}</button>`}</div>`).join("")}
+    <div class="row"><input type="text" id="newplayer" class="grow" placeholder="${esc(t("Prénom du joueur"))}" aria-label="${esc(t("Prénom du nouveau joueur"))}"><button class="btn primary" data-act="addplayer">${t("Ajouter")}</button></div></div>
+  <div class="card stack"><h3>${t("Sauvegarde")}</h3><p class="small muted">${t("Tout reste sur ce téléphone, sans compte. Exporte un fichier de temps en temps pour ne rien perdre.")}</p>
+    <div class="row"><button class="btn grow" data-act="export">${t("Exporter")}</button><label class="btn grow" style="position:relative;overflow:hidden">${t("Importer")}<input type="file" accept="application/json,.json" id="importinput" style="position:absolute;inset:0;opacity:0"></label></div></div>
   </div>`;
 }
 
 /* =================== events =================== */
-function addPlayer(name){ name=(name||"").trim().slice(0,24); if(!name) return toast("Écris un prénom."); S.players.push({id:uid(),name}); save(); render(); }
+function addPlayer(name){ name=(name||"").trim().slice(0,24); if(!name) return toast(t("Écris un prénom.")); S.players.push({id:uid(),name}); save(); render(); }
 function bind(){
   document.querySelectorAll("#view [data-act]").forEach(el=>el.addEventListener("click",onAct));
   const on=(id,ev,fn)=>{ const e=$(id); if(e) e.addEventListener(ev,fn); };
   on("#voice","change",e=>{ S.settings.voice=e.target.checked; save(); });
   on("#sfx","change",e=>{ S.settings.sfx=e.target.checked; save(); if(e.target.checked) playCup(); });
   on("#applfile","change",async e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=""; if(!f) return;
-    if(f.size>1500000){ toast("Fichier trop lourd : prends un son de moins de 1,5 Mo (quelques secondes)."); return; }
+    if(f.size>1500000){ toast(t("Fichier trop lourd : prends un son de moins de 1,5 Mo (quelques secondes).")); return; }
     try{ const ab=await f.arrayBuffer(); audioUnlock(); await AC.decodeAudioData(ab.slice(0)); let s2=""; const u=new Uint8Array(ab); for(let i=0;i<u.length;i+=8192) s2+=String.fromCharCode.apply(null,u.subarray(i,i+8192));
-      localStorage.setItem("puttlab-applause",btoa(s2)); APPLAUSE=null; toast("Son d'applaudissements enregistré"); render(); audioUnlock(); applause(AC.currentTime+0.05,3); }
-    catch(err){ toast("Ce fichier son n'est pas lisible ou trop gros pour le téléphone."); } });
+      localStorage.setItem("puttlab-applause",btoa(s2)); APPLAUSE=null; toast(t("Son d'applaudissements enregistré")); render(); audioUnlock(); applause(AC.currentTime+0.05,3); }
+    catch(err){ toast(t("Ce fichier son n'est pas lisible ou trop gros pour le téléphone.")); } });
   on("#ohfile","change",async e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=""; if(!f) return;
-    if(f.size>700000){ toast("Fichier trop lourd : prends un son de moins de 700 Ko (2 ou 3 secondes)."); return; }
+    if(f.size>700000){ toast(t("Fichier trop lourd : prends un son de moins de 700 Ko (2 ou 3 secondes).")); return; }
     try{ const ab=await f.arrayBuffer(); audioUnlock(); await AC.decodeAudioData(ab.slice(0)); let s2=""; const u=new Uint8Array(ab); for(let i=0;i<u.length;i+=8192) s2+=String.fromCharCode.apply(null,u.subarray(i,i+8192));
-      localStorage.setItem("puttlab-oh",btoa(s2)); OHBUF=null; toast("Son du putt raté enregistré"); render(); playOh(); }
-    catch(err){ toast("Ce fichier son n'est pas lisible ou trop gros pour le téléphone."); } });
-  on("#voicesel","change",e=>{ S.settings.voiceURI=e.target.value; save(); sayText("Bonjour, je serai ta voix sur le green.", true); });
-  on("#vpitch","change",e=>{ S.settings.vPitch=+e.target.value; save(); sayText("Drapeau à 4 mètres.", true); });
-  on("#vrate","change",e=>{ S.settings.vRate=+e.target.value; save(); sayText("Drapeau à 4 mètres.", true); });
+      localStorage.setItem("puttlab-oh",btoa(s2)); OHBUF=null; toast(t("Son du putt raté enregistré")); render(); playOh(); }
+    catch(err){ toast(t("Ce fichier son n'est pas lisible ou trop gros pour le téléphone.")); } });
+  on("#voicesel","change",e=>{ S.settings.voiceURI=e.target.value; save(); sayText(t("Bonjour, je serai ta voix sur le green."), true); });
+  on("#vpitch","change",e=>{ S.settings.vPitch=+e.target.value; save(); sayText(t("Drapeau à {d}. ",{d:sayDist(4)}).trim(), true); });
+  on("#vrate","change",e=>{ S.settings.vRate=+e.target.value; save(); sayText(t("Drapeau à {d}. ",{d:sayDist(4)}).trim(), true); });
   on("#testmode","change",e=>{ S.settings.testMode=e.target.checked; save(); });
   on("#newplayer","keydown",e=>{ if(e.key==="Enter") addPlayer(e.target.value); });
   on("#importinput","change",e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=""; if(f) importData(f); });
@@ -1138,12 +1427,13 @@ function onAct(e){
     case "ohreset": try{ localStorage.removeItem("puttlab-oh"); }catch(e){} OHBUF=null; render(); break;
     case "appltest": audioUnlock(); if(AC) applause(AC.currentTime+0.05,2.8); break;
     case "applreset": try{ localStorage.removeItem("puttlab-applause"); }catch(e){} APPLAUSE=null; render(); break;
-    case "voicetest": sayText("À toi, "+(S.players[0]?S.players[0].name:"Benito")+". Trou 3. Drapeau à 6,4 mètres. En montée, 1 pour cent. Ça casse vers la gauche.", true); break;
+    case "voicetest": sayText(t("À toi, {name}. ",{name:S.players[0]?S.players[0].name:"Benito"})+t("Trou {n}. ",{n:3})+t("Drapeau à {d}. ",{d:sayDist(6.4)})+t("En montée")+", "+sayPct(1)+". "+t("Ça casse vers la gauche."), true); break;
+    case "lang": st.lang=el.dataset.v; save(); pickVoice(true); render(); break;
     case "listen": speakSituation(true); break;
     case "distk": st.distK=Math.max(0.3,Math.min(8,Math.round(((st.distK||1)+(+el.dataset.v))*10)/10)); save(); render(); break;
     case "calibk": { const real=parseFloat(String($("#realdist").value).replace(",",".")); const last=S.shots[S.shots.length-1];
-      if(!(real>0)||!last||!(last.flat>0)) { toast("Entre la distance réelle en mètres."); break; }
-      st.distK=Math.max(0.3,Math.min(8,Math.round((st.distK||1)*real/last.flat*10)/10)); save(); render(); toast("Étalonnage réglé sur × "+nf(st.distK,1)); break; }
+      if(!(real>0)||!last||!(last.flat>0)) { toast(t("Entre la distance réelle en mètres.")); break; }
+      st.distK=Math.max(0.3,Math.min(8,Math.round((st.distK||1)*real/last.flat*10)/10)); save(); render(); toast(t("Étalonnage réglé sur × {n}",{n:nf(st.distK,1)})); break; }
     case "statp": S.statP=el.dataset.id; render(); break;
     case "export": exportData(); break;
   }
@@ -1151,7 +1441,7 @@ function onAct(e){
 document.querySelectorAll("#tabs button").forEach(b=>b.addEventListener("click",()=>{ S.tab=b.dataset.tab; S.last=null; render(); window.scrollTo(0,0); }));
 function exportData(){
   const blob=new Blob([JSON.stringify({app:"puttlab-lm",v:1,date:Date.now(),players:S.players,rounds:S.rounds,shots:S.shots,settings:S.settings})],{type:"application/json"});
-  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="square-face-putting-sauvegarde-"+new Date().toISOString().slice(0,10)+".json";
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="square-face-putting-"+t("sauvegarde")+"-"+new Date().toISOString().slice(0,10)+".json";
   document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },1000);
 }
 async function importData(file){
@@ -1159,8 +1449,8 @@ async function importData(file){
     const ids=new Set(S.players.map(p=>p.id)); j.players.forEach(p=>{ if(!ids.has(p.id)) S.players.push(p); });
     const rs=new Set(S.rounds.map(r=>r.id)); (j.rounds||[]).forEach(r=>{ if(!rs.has(r.id)) S.rounds.push(r); });
     const ts=new Set(S.shots.map(s=>s.t)); (j.shots||[]).forEach(s=>{ if(!ts.has(s.t)) S.shots.push(s); });
-    S.shots.sort((a,b)=>a.t-b.t); save(); render(); toast("Sauvegarde importée");
-  }catch(e){ toast("Ce fichier n'est pas une sauvegarde Square Face Putting."); }
+    S.shots.sort((a,b)=>a.t-b.t); save(); render(); toast(t("Sauvegarde importée"));
+  }catch(e){ toast(t("Ce fichier n'est pas une sauvegarde Square Face Putting.")); }
 }
 window.addEventListener("resize",()=>{ if($("#green")) drawGreen(); });
 document.addEventListener("visibilitychange",()=>{ if(document.hidden) camStop(); else if($("#green")) camStart(); });
