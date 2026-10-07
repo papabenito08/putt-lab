@@ -674,49 +674,94 @@ function drawGreen(){
   cancelAnimationFrame(greenRAF);
   const last=S.last;
   const ctx= last ? last.ctx : curCtx(); if(!ctx) return;
-  const W=cv.clientWidth||360, H=Math.round(W*1.15), dpr=Math.min(2,window.devicePixelRatio||1);
+  const W=cv.clientWidth||360, H=Math.round(W*1.0), dpr=Math.min(2,window.devicePixelRatio||1);
   cv.width=W*dpr; cv.height=H*dpr; const g=cv.getContext("2d"); g.setTransform(dpr,0,0,dpr,0,0);
-  const pts=[ctx.start,ctx.hole]; if(last) pts.push(last.sim.end);
-  let x0=Math.min(...pts.map(p=>p.x)), x1=Math.max(...pts.map(p=>p.x)), y0=Math.min(...pts.map(p=>p.y)), y1=Math.max(...pts.map(p=>p.y));
-  const pad=Math.max(0.6,(y1-y0)*0.15,(x1-x0)*0.15); x0-=pad; x1+=pad; y0-=pad; y1+=pad;
-  const sc=Math.min(W/(x1-x0), H/(y1-y0)), cx=(x0+x1)/2, cy=(y0+y1)/2;
-  const X=x=>W/2+(x-cx)*sc, Y=y=>H/2-(y-cy)*sc;
   const dark=matchMedia("(prefers-color-scheme: dark)").matches;
-  // static background in an offscreen canvas
+  // ---- camera: golfer's eye 1.80 m high, standing behind the ball, looking toward the hole ----
+  const st=ctx.start, ho=ctx.hole, L=Math.hypot(ho.x-st.x,ho.y-st.y)||1;
+  const fw={x:(ho.x-st.x)/L, y:(ho.y-st.y)/L}, rt={x:fw.y, y:-fw.x};
+  const EYE_H=1.8, BACK=1.0;
+  const eye={x:st.x-fw.x*BACK, y:st.y-fw.y*BACK, z:EYE_H};
+  const tgt={x:st.x+fw.x*L*0.55, y:st.y+fw.y*L*0.55, z:0};
+  let f3={x:tgt.x-eye.x, y:tgt.y-eye.y, z:tgt.z-eye.z}; const fl=Math.hypot(f3.x,f3.y,f3.z); f3={x:f3.x/fl,y:f3.y/fl,z:f3.z/fl};
+  const r3={x:rt.x, y:rt.y, z:0};                       // camera right (horizontal)
+  const u3={x:r3.y*f3.z-r3.z*f3.y, y:r3.z*f3.x-r3.x*f3.z, z:r3.x*f3.y-r3.y*f3.x};  // up = right x forward
+  const cam=(x,y,z)=>{ const vx=x-eye.x, vy=y-eye.y, vz=(z||0)-eye.z; return [vx*r3.x+vy*r3.y+vz*r3.z, vx*u3.x+vy*u3.y+vz*u3.z, vx*f3.x+vy*f3.y+vz*f3.z]; };
+  // fit the view: start, hole, flag top and the putt's path must all be visible
+  const keys=[[st.x,st.y,0],[ho.x,ho.y,0],[ho.x,ho.y,0.9]];
+  for(const s0 of [-0.7,0.7]){ keys.push([st.x+rt.x*s0,st.y+rt.y*s0,0]); keys.push([ho.x+rt.x*s0,ho.y+rt.y*s0,0]); }
+  if(last){ for(const q of last.sim.path) keys.push([q.x,q.y,0]); keys.push([last.sim.end.x,last.sim.end.y,0]); }
+  let a0=1e9,a1=-1e9,b0=1e9,b1=-1e9;
+  for(const k of keys){ const c=cam(...k); if(c[2]<0.2) continue; const px=c[0]/c[2], py=c[1]/c[2]; a0=Math.min(a0,px); a1=Math.max(a1,px); b0=Math.min(b0,py); b1=Math.max(b1,py); }
+  const F=Math.min(W*0.86/Math.max(0.05,a1-a0), H*0.80/Math.max(0.05,b1-b0));
+  const ox=W/2-F*(a0+a1)/2, oy=H/2+F*(b0+b1)/2;
+  const P=(x,y,z)=>{ const c=cam(x,y,z); if(c[2]<0.15) return null; return [ox+F*c[0]/c[2], oy-F*c[1]/c[2], c[2]]; };
+  // a ground line drawn in short pieces so nothing behind the eye is drawn
+  const gline=(c,x0_,y0_,x1_,y1_)=>{ const n=Math.max(2,Math.ceil(Math.hypot(x1_-x0_,y1_-y0_)/0.25)); let pen=false;
+    for(let k=0;k<=n;k++){ const t=k/n, q=P(x0_+(x1_-x0_)*t, y0_+(y1_-y0_)*t, 0); if(!q){ pen=false; continue; } pen?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]); pen=true; } };
+  const gpoly=(c,pts)=>{ let first=true; for(const p of pts){ const q=P(p[0],p[1],0); if(!q) continue; first?c.moveTo(q[0],q[1]):c.lineTo(q[0],q[1]); first=false; } };
+  // area of green that we draw (in "along / across" coordinates relative to the ball)
+  const A0=-BACK+0.35, A1=L+2.5, C0=-6, C1=6;
+  const wpt=(a,c)=>[st.x+fw.x*a+rt.x*c, st.y+fw.y*a+rt.y*c];
+  // ---- static background ----
   const bg=document.createElement("canvas"); bg.width=cv.width; bg.height=cv.height; const b=bg.getContext("2d"); b.setTransform(dpr,0,0,dpr,0,0);
-  const stripe=Math.max(18,0.9*sc);
-  for(let i=0;i*stripe<H;i++){ b.fillStyle=(i%2)?(dark?"#245C38":"#3E8C57"):(dark?"#1F5232":"#378050"); b.fillRect(0,i*stripe,W,stripe+1); }
+  const sky=b.createLinearGradient(0,0,0,H*0.4); sky.addColorStop(0,dark?"#16261D":"#CFE3D2"); sky.addColorStop(1,dark?"#1C3527":"#B7D4BC");
+  b.fillStyle=sky; b.fillRect(0,0,W,H);
+  { const pts=[]; for(let c=-60;c<=60;c+=4) pts.push(wpt(A0,c)); for(let c=60;c>=-60;c-=4) pts.push(wpt(A1+60,c));
+    b.fillStyle=dark?"#173F27":"#2E6B42"; b.beginPath(); gpoly(b,pts); b.closePath(); b.fill(); }
+  for(let a=Math.floor(A0); a<A1; a+=1){ const k=((a%2)+2)%2;
+    b.fillStyle=k?(dark?"#245C38":"#3E8C57"):(dark?"#1F5232":"#378050"); b.beginPath();
+    const aa=Math.max(a,A0), ab=Math.min(A1,a+1.02); const pts=[];
+    for(let c=C0;c<=C1;c+=1) pts.push(wpt(aa,c)); for(let c=C1;c>=C0;c-=1) pts.push(wpt(ab,c));
+    gpoly(b,pts); b.closePath(); b.fill(); }
+  // far edge fades into the background
   const gr=ctx.green;
-  // grid every 0.5 m
-  b.strokeStyle="rgba(255,255,255,.16)"; b.lineWidth=1; b.beginPath();
-  const step=0.5, vLines=[], hLines=[];
-  for(let gx=Math.ceil(x0/step)*step; gx<=x1; gx+=step){ const sx=X(gx); vLines.push(sx); b.moveTo(sx,0); b.lineTo(sx,H); }
-  for(let gy=Math.floor(y0/step)*step; gy<=y1+step; gy+=step){ const sy=Y(gy); if(sy<-2||sy>H+2) continue; hLines.push(sy); b.moveTo(0,sy); b.lineTo(W,sy); } b.stroke();
-  b.setLineDash([5,7]); b.strokeStyle="rgba(255,255,255,.55)"; b.lineWidth=1.5; b.beginPath(); b.moveTo(X(ctx.start.x),Y(ctx.start.y)); b.lineTo(X(ctx.hole.x),Y(ctx.hole.y)); b.stroke(); b.setLineDash([]);
-  b.strokeStyle="rgba(255,255,255,.25)"; b.beginPath(); b.arc(X(ctx.hole.x),Y(ctx.hole.y),0.5*sc,0,7); b.stroke();
-  const hr=Math.max(5,HOLE_R*sc), hx=X(ctx.hole.x), hy=Y(ctx.hole.y);
-  b.fillStyle="#0B1F14"; b.beginPath(); b.arc(hx,hy,hr,0,7); b.fill();
-  b.strokeStyle="#F4F6F2"; b.lineWidth=2.5; b.beginPath(); b.moveTo(hx,hy); b.lineTo(hx,hy-46); b.stroke();
-  b.fillStyle="#F2C230"; b.beginPath(); b.moveTo(hx,hy-46); b.lineTo(hx+24,hy-38); b.lineTo(hx,hy-30); b.fill();
-  const br=Math.max(4,0.0213*sc*1.3);
-  const ball=p=>{ g.fillStyle="#FBFBF7"; g.beginPath(); g.arc(X(p.x),Y(p.y),br,0,7); g.fill(); g.strokeStyle="rgba(0,0,0,.3)"; g.lineWidth=1; g.stroke(); };
-  // little beads that slide along the grid lines: along horizontal lines with the sideways part of the slope,
-  // along vertical lines with the up/down part; the steeper that part, the faster they go
-  const ux=gr.down.x, uy=-gr.down.y, vpx=4+gr.slope*26, beads=[];
-  const hv=ux*vpx, vv=uy*vpx, gap=step*sc;
+  // grid every 0.5 m, along the green's own axes
+  const step=0.5;
+  const corners=[wpt(A0,C0),wpt(A0,C1),wpt(A1,C0),wpt(A1,C1)];
+  const gx0=Math.min(...corners.map(p=>p[0])), gx1=Math.max(...corners.map(p=>p[0])), gy0=Math.min(...corners.map(p=>p[1])), gy1=Math.max(...corners.map(p=>p[1]));
+  const near=(x,y)=>{ const dx=x-st.x, dy=y-st.y, a=dx*fw.x+dy*fw.y, c=dx*rt.x+dy*rt.y; return a>=A0&&a<=A1&&c>=C0&&c<=C1; };
+  b.strokeStyle="rgba(255,255,255,.17)"; b.lineWidth=1; b.beginPath();
+  const xLines=[], yLines=[];
+  for(let x=Math.ceil(gx0/step)*step; x<=gx1; x+=step){ xLines.push(x); }
+  for(let y=Math.ceil(gy0/step)*step; y<=gy1; y+=step){ yLines.push(y); }
+  const clipLine=(fx,x0_,y0_,x1_,y1_)=>{ const n=Math.ceil(Math.hypot(x1_-x0_,y1_-y0_)/0.25); let seg=null;
+    for(let k=0;k<=n;k++){ const t=k/n, x=x0_+(x1_-x0_)*t, y=y0_+(y1_-y0_)*t; if(near(x,y)){ if(!seg) seg=[x,y]; var lx=x, ly=y; } else if(seg){ fx(seg[0],seg[1],lx,ly); seg=null; } }
+    if(seg) fx(seg[0],seg[1],lx,ly); };
+  for(const x of xLines) clipLine((a,b_,c,d)=>gline(b,a,b_,c,d), x,gy0,x,gy1);
+  for(const y of yLines) clipLine((a,b_,c,d)=>gline(b,a,b_,c,d), gx0,y,gx1,y);
+  b.stroke();
+  // aim line, 50 cm ring, hole, flag
+  b.setLineDash([6,7]); b.strokeStyle="rgba(255,255,255,.6)"; b.lineWidth=1.6; b.beginPath(); gline(b,st.x,st.y,ho.x,ho.y); b.stroke(); b.setLineDash([]);
+  const circ=(r,n)=>{ const pts=[]; for(let k=0;k<n;k++){ const t=k/n*Math.PI*2; pts.push([ho.x+r*Math.cos(t), ho.y+r*Math.sin(t)]); } return pts; };
+  b.strokeStyle="rgba(255,255,255,.28)"; b.beginPath(); gpoly(b,circ(0.5,48)); b.closePath(); b.stroke();
+  { const hc=P(ho.x,ho.y,0); if(hc){ const dist=Math.hypot(ho.x-eye.x,ho.y-eye.y), rx=Math.max(4,F*HOLE_R*1.25/hc[2]), ry=rx*Math.max(0.22,EYE_H/Math.hypot(dist,EYE_H));
+    b.fillStyle="#0B1F14"; b.beginPath(); b.ellipse(hc[0],hc[1],rx,ry,0,0,7); b.fill(); } }
+  const pb=P(ho.x,ho.y,0), pt=P(ho.x,ho.y,0.9);
+  if(pb&&pt){ b.strokeStyle="#F4F6F2"; b.lineWidth=Math.max(1.5,F*0.012/pb[2]); b.beginPath(); b.moveTo(pb[0],pb[1]); b.lineTo(pt[0],pt[1]); b.stroke();
+    const fl2=P(ho.x+rt.x*0.32,ho.y+rt.y*0.32,0.8), fl3=P(ho.x,ho.y,0.7);
+    if(fl2&&fl3){ b.fillStyle="#F2C230"; b.beginPath(); b.moveTo(pt[0],pt[1]); b.lineTo(fl2[0],fl2[1]); b.lineTo(fl3[0],fl3[1]); b.fill(); } }
+  const ball=p=>{ const q=P(p.x,p.y,0.02); if(!q) return; const r=Math.max(2.5,F*0.0213*1.4/q[2]);
+    g.fillStyle="rgba(0,0,0,.25)"; g.beginPath(); g.ellipse(q[0]+r*0.25,q[1]+r*0.35,r,r*0.5,0,0,7); g.fill();
+    g.fillStyle="#FBFBF7"; g.beginPath(); g.arc(q[0],q[1]-r*0.3,r,0,7); g.fill(); g.strokeStyle="rgba(0,0,0,.3)"; g.lineWidth=1; g.stroke(); };
+  // ---- beads that slide along the grid lines, downhill; steeper = faster ----
+  const vW=0.04+gr.slope*0.32, vx=gr.down.x*vW, vy=gr.down.y*vW, beads=[];
   if(gr.slope>0.05){
-    if(Math.abs(ux)>0.12) for(const ly of hLines){ const n=Math.max(1,Math.round(W/(gap*1.3))); const off=Math.random()*W; for(let k=0;k<n;k++) beads.push({h:1,x:(off+k*W/n)%W,y:ly}); }
-    if(Math.abs(uy)>0.12) for(const lx of vLines){ const n=Math.max(1,Math.round(H/(gap*1.3))); const off=Math.random()*H; for(let k=0;k<n;k++) beads.push({h:0,x:lx,y:(off+k*H/n)%H}); }
+    if(Math.abs(gr.down.x)>0.12) for(const y of yLines){ const n=Math.round((gx1-gx0)/0.7); const off=Math.random()*(gx1-gx0); for(let k=0;k<n;k++) beads.push({ax:1,x:gx0+(off+k*0.7)%(gx1-gx0),y}); }
+    if(Math.abs(gr.down.y)>0.12) for(const x of xLines){ const n=Math.round((gy1-gy0)/0.7); const off=Math.random()*(gy1-gy0); for(let k=0;k<n;k++) beads.push({ax:0,x,y:gy0+(off+k*0.7)%(gy1-gy0)}); }
   }
   const flow=beads.length>0;
   let prevT=performance.now();
   const drawBeads=()=>{
     const now=performance.now(), dt=Math.min(0.1,(now-prevT)/1000); prevT=now;
     for(const q of beads){
-      if(q.h){ q.x=(q.x+hv*dt+W)%W; } else { q.y=(q.y+vv*dt+H)%H; }
-      const tx=q.h?Math.sign(hv)*8:0, ty=q.h?0:Math.sign(vv)*8;
-      g.strokeStyle="rgba(255,236,150,.35)"; g.lineWidth=2; g.beginPath(); g.moveTo(q.x-tx,q.y-ty); g.lineTo(q.x,q.y); g.stroke();
-      g.fillStyle="rgba(255,236,150,.9)"; g.beginPath(); g.arc(q.x,q.y,2.2,0,7); g.fill();
+      if(q.ax){ q.x+=vx*dt; if(q.x>gx1) q.x-=gx1-gx0; if(q.x<gx0) q.x+=gx1-gx0; } else { q.y+=vy*dt; if(q.y>gy1) q.y-=gy1-gy0; if(q.y<gy0) q.y+=gy1-gy0; }
+      if(!near(q.x,q.y)) continue;
+      const p1=P(q.x,q.y,0); if(!p1||p1[0]<-5||p1[0]>W+5||p1[1]<-5||p1[1]>H+5) continue;
+      const p0=q.ax?P(q.x-Math.sign(vx)*0.12,q.y,0):P(q.x,q.y-Math.sign(vy)*0.12,0);
+      const r=Math.max(1.2,Math.min(3.2,F*0.012/p1[2]));
+      if(p0){ g.strokeStyle="rgba(255,236,150,.35)"; g.lineWidth=r*0.9; g.beginPath(); g.moveTo(p0[0],p0[1]); g.lineTo(p1[0],p1[1]); g.stroke(); }
+      g.fillStyle="rgba(255,236,150,"+(0.92*Math.min(1,5/p1[2]))+")"; g.beginPath(); g.arc(p1[0],p1[1],r,0,7); g.fill();
     }
   };
   const paint=tt=>{
@@ -724,8 +769,8 @@ function drawGreen(){
     if(flow) drawBeads();
     if(!last){ ball(ctx.start); return true; }
     const path=last.sim.path; let k=0;
-    g.strokeStyle="rgba(251,251,247,.8)"; g.lineWidth=2; g.beginPath();
-    for(;k<path.length&&path[k].t<=tt;k++){ const q=path[k]; k?g.lineTo(X(q.x),Y(q.y)):g.moveTo(X(q.x),Y(q.y)); } g.stroke();
+    g.strokeStyle="rgba(251,251,247,.85)"; g.lineWidth=2; g.beginPath(); let pen=false;
+    for(;k<path.length&&path[k].t<=tt;k++){ const q=P(path[k].x,path[k].y,0); if(!q){ pen=false; continue; } pen?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1]); pen=true; } g.stroke();
     const end=tt>=path[path.length-1].t;
     const q=end?path[path.length-1]:path[Math.max(0,k-1)];
     if(!(end&&last.sim.holed)) ball(q);
@@ -739,11 +784,14 @@ function drawGreen(){
   };
   tick();
 }
+/* Closest the ball came to the hole along its path (m). */
+function closest(sim, hole){ let m=1e9; for(const q of sim.path) m=Math.min(m,Math.hypot(q.x-hole.x,q.y-hole.y)); return m; }
 function showVerdict(){
   const L=S.last; if(!L||L.verdictShown) return; L.verdictShown=true;
   const v=$("#verdict"); if(v){ v.textContent = L.sim.holed ? "Dans le trou !" : "Reste "+fmtM(L.sim.rest); }
-  if(L.sim.holed) playCup(); else playOh();
-  setTimeout(()=>speakResult(L.sim), L.sim.holed?1500:(S.settings.sfx===false?0:1600));
+  const nearMiss=!L.sim.holed && closest(L.sim, L.ctx.hole)<=0.40;
+  if(L.sim.holed) playCup(); else if(nearMiss) playOh();
+  setTimeout(()=>speakResult(L.sim), L.sim.holed?1500:((nearMiss&&S.settings.sfx!==false)?1600:0));
   if(L.after){ const f=L.after; L.after=null; setTimeout(()=>{ S.last=null; f(); }, 2600); }
 }
 
