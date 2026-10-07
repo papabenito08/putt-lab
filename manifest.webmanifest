@@ -1,6 +1,6 @@
 {
-  "name": "Putt Lab",
-  "short_name": "Putt Lab",
+  "name": "Pure Putting",
+  "short_name": "Pure Putting",
   "description": "Launch monitor de putting : vitesse, direction, face, et parcours virtuel. Sans compte.",
   "lang": "fr",
   "start_url": "./",

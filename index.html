@@ -7,11 +7,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Putt Lab">
+<meta name="apple-mobile-web-app-title" content="Pure Putting">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<title>Putt Lab</title>
+<title>Pure Putting</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Figtree:wght@400;500;600;700&display=swap">
 <style>
@@ -37,7 +37,7 @@ button{cursor:pointer}
 :focus-visible{outline:3px solid var(--flag);outline-offset:2px}
 .app{max-width:620px;margin:0 auto;padding-inline:16px;padding-block:12px 110px}
 .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
-.brand{white-space:nowrap;font-family:var(--display);font-weight:700;font-size:28px;letter-spacing:.02em;text-transform:uppercase;line-height:1}
+.brand{white-space:nowrap;font-family:var(--display);font-weight:700;font-size:clamp(20px,6.4vw,28px);letter-spacing:.02em;text-transform:uppercase;line-height:1}
 .brand span{color:var(--green)}
 h2{font-family:var(--display);font-weight:600;font-size:24px;text-transform:uppercase;letter-spacing:.03em;margin:20px 0 10px;text-wrap:balance}
 h3{font-size:15px;margin:0 0 4px}
@@ -117,7 +117,7 @@ svg text{fill:var(--muted);font-family:var(--body)}
 </head>
 <body>
 <div class="app">
-  <div class="top"><div class="brand">Putt <span>Lab</span></div><span class="status" id="status" hidden><i></i><span id="statustxt">Caméra arrêtée</span></span></div>
+  <div class="top"><div class="brand">Pure <span>Putting</span></div><span class="status" id="status" hidden><i></i><span id="statustxt">Caméra arrêtée</span></span></div>
   <main id="view"></main>
 </div>
 <nav class="tabs" id="tabs"><div class="in">
@@ -214,7 +214,7 @@ async function camStart(){
     try{ if(navigator.wakeLock) LM.wake=await navigator.wakeLock.request("screen"); }catch(e){}
     loop();
   }catch(e){
-    LM.err = location.protocol!=="https:"&&location.hostname!=="localhost" ? "La caméra demande une adresse https." : "Caméra refusée ou indisponible. Autorise la caméra pour Putt Lab dans les réglages du téléphone.";
+    LM.err = location.protocol!=="https:"&&location.hostname!=="localhost" ? "La caméra demande une adresse https." : "Caméra refusée ou indisponible. Autorise la caméra pour Pure Putting dans les réglages du téléphone.";
     setStatus("err","Caméra indisponible"); toast(LM.err);
   }
 }
@@ -669,6 +669,92 @@ function curCtx(){
   if(S.tab==="practice"&&S.practice) return {hole:{x:0,y:S.practice.D},start:{x:0,y:0},green:S.practice.green};
   return null;
 }
+/* Photo-like grass for the perspective green: each pixel is traced back onto the ground. */
+let GTEX=null;
+function gHash(ix,iy){ let n=Math.imul(ix,374761393)+Math.imul(iy,668265263)|0; n=Math.imul(n^(n>>>13),1274126177); return ((n^(n>>>16))>>>0)/4294967295; }
+function vNoise(x,y){ const ix=Math.floor(x), iy=Math.floor(y), fx=x-ix, fy=y-iy, sx=fx*fx*(3-2*fx), sy=fy*fy*(3-2*fy);
+  const a=gHash(ix,iy), b=gHash(ix+1,iy), c=gHash(ix,iy+1), d=gHash(ix+1,iy+1); return a+(b-a)*sx+(c-a)*sy+(a-b-c+d)*sx*sy; }
+function groundTex(Wd,Hd,dpr,o){
+  const key=[Wd,Hd,o.F.toFixed(2),o.ox.toFixed(1),o.oy.toFixed(1),o.st.x,o.st.y,o.eye.x.toFixed(3),o.eye.y.toFixed(3),o.dark].join("|");
+  if(GTEX&&GTEX.key===key) return GTEX.cv;
+  const cv=document.createElement("canvas"); cv.width=Wd; cv.height=Hd; const c2=cv.getContext("2d"); const img=c2.createImageData(Wd,Hd), D=img.data;
+  const {eye,r3,u3,f3,F,ox,oy,st,fw,rt,dark,gshape,GRa,GRc}=o, dim=dark?0.80:1, rmin=Math.min(GRa,GRc);
+  const SKY0=[128,176,222], SKY1=[214,228,234], HAZE=[188,206,200];
+  const hyPy=-f3.z/u3.z, hy=oy-F*hyPy;  // horizon row (css px)
+  for(let py=0;py<Hd;py++){
+    const sy=(py+0.5)/dpr, pyN=-(sy-oy)/F, dz=u3.z*pyN+f3.z;
+    for(let px=0;px<Wd;px++){
+      const i=(py*Wd+px)*4; let R,Gc,B;
+      const sx=(px+0.5)/dpr, pxN=(sx-ox)/F;
+      const t= dz<-1e-4 ? -eye.z/dz : 1e9;
+      if(t>600){ const k=Math.max(0,Math.min(1,sy/Math.max(1,hy))); R=SKY0[0]+(SKY1[0]-SKY0[0])*k; Gc=SKY0[1]+(SKY1[1]-SKY0[1])*k; B=SKY0[2]+(SKY1[2]-SKY0[2])*k; }
+      else {
+        const x=eye.x+t*(r3.x*pxN+u3.x*pyN+f3.x), y=eye.y+t*(r3.y*pxN+u3.y*pyN+f3.y);
+        const dx=x-st.x, dy=y-st.y, a=dx*fw.x+dy*fw.y, c=dx*rt.x+dy*rt.y;
+        const foot=t/F, kg=Math.min(1,0.018/foot);         // fade fine grain where one pixel covers more than ~2 cm
+        const rr=gshape(a,c), outM=(rr-1)*rmin;              // metres outside the green edge
+        const n2=vNoise(x*2.5,y*2.5), n3=vNoise(x*0.33+17,y*0.33+5);
+        let base, grain;
+        if(outM<0){ base=[76,142,62]; grain=1;
+          const lane=Math.floor(c/1.15+100)&1; const m=1+(lane?0.05:-0.05); base=[base[0]*m,base[1]*m,base[2]*m]; }
+        else if(outM<0.85){ base=[66,126,50]; grain=1.35; }
+        else { base=[48,99,38]; grain=1.8; }
+        if(outM>-0.04&&outM<0.04){ const k=(outM+0.04)/0.08; base=[base[0]*(1-k*0.12),base[1]*(1-k*0.08),base[2]*(1-k*0.12)]; }
+        const k1=Math.min(1,0.010/foot), k0=Math.min(1,0.004/foot);
+        const n1=k1>0.08?vNoise(x*90,y*130):0.5, n0=k0>0.08?vNoise(x*230+7,y*310+3):0.5, n4=vNoise(x*9+3,y*9+1);
+        const lum=1+grain*((n1-0.5)*0.26*k1+(n0-0.5)*0.24*k0+(n4-0.5)*0.07)+(n2-0.5)*0.09+(n3-0.5)*0.10;
+        R=base[0]*lum; Gc=base[1]*lum; B=base[2]*lum;
+        const hz=1-Math.exp(-t/45); R+=(HAZE[0]-R)*hz; Gc+=(HAZE[1]-Gc)*hz; B+=(HAZE[2]-B)*hz;
+      }
+      D[i]=R*dim; D[i+1]=Gc*dim; D[i+2]=B*dim; D[i+3]=255;
+    }
+  }
+  c2.putImageData(img,0,0);
+  // distant tree line on the horizon
+  if(hy>2&&hy<Hd/dpr){ c2.setTransform(dpr,0,0,dpr,0,0); const th=Math.min(hy*0.5,Hd/dpr*0.07,Math.max(6,F*0.12));
+    const tg=c2.createLinearGradient(0,hy-th*1.4,0,hy); tg.addColorStop(0,dark?"#2E4636":"#4F7458"); tg.addColorStop(1,dark?"#3A5643":"#6F8F74"); c2.fillStyle=tg; c2.beginPath(); c2.moveTo(0,hy+1);
+    c2.rect(0,hy-th*0.35,Wd/dpr,th*0.35+1);
+    for(let x=-th, k=0; x<=Wd/dpr+th; k++){ const r=th*(0.28+0.30*gHash(k,7)), cy=hy-th*(0.30+0.45*gHash(k,11)); c2.moveTo(x+r,cy); c2.arc(x,cy,r,0,7); x+=r*(0.9+0.5*gHash(k,3)); }
+    c2.fill(); }
+  GTEX={key,cv}; return cv;
+}
+/* "PURE PUTTING" advertising boards standing in the rough around the green. */
+function drawBoards(b,dpr,P,o){
+  const {eye,st,fw,rt,L,GM,GRa,GRc,dark}=o, wp=(a,c)=>({x:st.x+fw.x*a+rt.x*c, y:st.y+fw.y*a+rt.y*c});
+  const PW=2.4, Z0=0.10, Z1=0.80, panels=[];
+  const aBack=GM+GRa+1.8, cSide=GRc+2.2;
+  let n=0; for(let c=-13; c<13; c+=2*(PW+0.15)) { const p=[wp(aBack,c), wp(aBack,c+PW)]; p.alt=(n++)%2===0; panels.push(p); }
+  const dist=p=>Math.hypot((p[0].x+p[1].x)/2-eye.x,(p[0].y+p[1].y)/2-eye.y);
+  panels.sort((p,q)=>dist(q)-dist(p));
+  const UW=480, UH=140;
+  panels.forEach((pn,idx)=>{
+    let [A,B]=pn; let tl=P(A.x,A.y,Z1), tr=P(B.x,B.y,Z1), bl=P(A.x,A.y,Z0), br=P(B.x,B.y,Z0);
+    if(!tl||!tr||!bl||!br) return;
+    let ax=(tr[0]-tl[0])/UW, ay=(tr[1]-tl[1])/UW, bx=(bl[0]-tl[0])/UH, by=(bl[1]-tl[1])/UH;
+    if(ax*by-ay*bx<0){ [A,B]=[B,A]; tl=P(A.x,A.y,Z1); tr=P(B.x,B.y,Z1); bl=P(A.x,A.y,Z0); br=P(B.x,B.y,Z0);
+      ax=(tr[0]-tl[0])/UW; ay=(tr[1]-tl[1])/UW; bx=(bl[0]-tl[0])/UH; by=(bl[1]-tl[1])/UH; }
+    if(Math.abs(tr[0]-tl[0])<3) return;
+    const gA=P(A.x,A.y,0), gB=P(B.x,B.y,0);
+    // legs and a soft shadow at the foot of the board
+    b.setTransform(dpr,0,0,dpr,0,0);
+    if(gA&&gB){ b.fillStyle="rgba(0,20,0,.28)"; b.beginPath(); b.moveTo(bl[0],bl[1]); b.lineTo(br[0],br[1]); b.lineTo(gB[0],gB[1]+2); b.lineTo(gA[0],gA[1]+2); b.closePath(); b.fill(); }
+    b.setTransform(dpr*ax,dpr*ay,dpr*bx,dpr*by,dpr*tl[0],dpr*tl[1]);
+    const alt=pn.alt;
+    b.fillStyle=alt?"#123F25":"#F7F8F3"; b.fillRect(0,0,UW,UH);
+    b.fillStyle=alt?"#2E8B57":"#1B6B3F"; b.fillRect(0,UH-14,UW,14);
+    b.fillStyle="rgba(255,255,255,.18)"; b.fillRect(0,0,UW,6);
+    b.font="800 64px system-ui,-apple-system,'Segoe UI',Roboto,sans-serif"; b.textBaseline="middle";
+    const w1=b.measureText("PURE ").width, w2=b.measureText("PUTTING").width, sc=Math.min(1,(UW-40)/(w1+w2)), x0=(UW-(w1+w2)*sc)/2;
+    b.save(); b.translate(x0,(UH-14)/2+2); b.scale(sc,1);
+    b.fillStyle=alt?"#FFFFFF":"#0F2A1A"; b.fillText("PURE ",0,0);
+    b.fillStyle=alt?"#7FD49A":"#1F8A4C"; b.fillText("PUTTING",w1,0); b.restore();
+    const d=dist(pn), hz=1-Math.exp(-d/45);
+    b.fillStyle="rgba(188,206,200,"+(hz*0.9).toFixed(3)+")"; b.fillRect(0,0,UW,UH);
+    if(dark){ b.fillStyle="rgba(0,0,0,.20)"; b.fillRect(0,0,UW,UH); }
+    b.strokeStyle="rgba(0,0,0,.35)"; b.lineWidth=3; b.strokeRect(0,0,UW,UH);
+  });
+  b.setTransform(dpr,0,0,dpr,0,0);
+}
 function drawGreen(){
   const cv=$("#green"); if(!cv) return;
   cancelAnimationFrame(greenRAF);
@@ -689,6 +775,7 @@ function drawGreen(){
   const cam=(x,y,z)=>{ const vx=x-eye.x, vy=y-eye.y, vz=(z||0)-eye.z; return [vx*r3.x+vy*r3.y+vz*r3.z, vx*u3.x+vy*u3.y+vz*u3.z, vx*f3.x+vy*f3.y+vz*f3.z]; };
   // fit the view: start, hole, flag top and the putt's path must all be visible
   const keys=[[st.x,st.y,0],[ho.x,ho.y,0],[ho.x,ho.y,0.9]];
+  keys.push([st.x+fw.x*(L+4.2), st.y+fw.y*(L+4.2), 0.85]);   // top of the boards behind the green
   for(const s0 of [-0.7,0.7]){ keys.push([st.x+rt.x*s0,st.y+rt.y*s0,0]); keys.push([ho.x+rt.x*s0,ho.y+rt.y*s0,0]); }
   if(last){ for(const q of last.sim.path) keys.push([q.x,q.y,0]); keys.push([last.sim.end.x,last.sim.end.y,0]); }
   let a0=1e9,a1=-1e9,b0=1e9,b1=-1e9;
@@ -705,23 +792,19 @@ function drawGreen(){
   const wpt=(a,c)=>[st.x+fw.x*a+rt.x*c, st.y+fw.y*a+rt.y*c];
   // ---- static background ----
   const bg=document.createElement("canvas"); bg.width=cv.width; bg.height=cv.height; const b=bg.getContext("2d"); b.setTransform(dpr,0,0,dpr,0,0);
-  const sky=b.createLinearGradient(0,0,0,H*0.4); sky.addColorStop(0,dark?"#16261D":"#CFE3D2"); sky.addColorStop(1,dark?"#1C3527":"#B7D4BC");
-  b.fillStyle=sky; b.fillRect(0,0,W,H);
-  { const pts=[]; for(let c=-60;c<=60;c+=4) pts.push(wpt(A0,c)); for(let c=60;c>=-60;c-=4) pts.push(wpt(A1+60,c));
-    b.fillStyle=dark?"#173F27":"#2E6B42"; b.beginPath(); gpoly(b,pts); b.closePath(); b.fill(); }
-  for(let a=Math.floor(A0); a<A1; a+=1){ const k=((a%2)+2)%2;
-    b.fillStyle=k?(dark?"#245C38":"#3E8C57"):(dark?"#1F5232":"#378050"); b.beginPath();
-    const aa=Math.max(a,A0), ab=Math.min(A1,a+1.02); const pts=[];
-    for(let c=C0;c<=C1;c+=1) pts.push(wpt(aa,c)); for(let c=C1;c>=C0;c-=1) pts.push(wpt(ab,c));
-    gpoly(b,pts); b.closePath(); b.fill(); }
+  // green shape: a rounded, slightly irregular green around the putt; fringe collar, then rough
+  const GM=L/2, GRa=L/2+2.4, GRc=5.2;
+  const gshape=(a,c)=>{ const da=(a-GM)/GRa, dc=c/GRc; return Math.sqrt(da*da+dc*dc)*(1-0.05*Math.sin(1.3*a+0.7)-0.04*Math.sin(0.9*c+2)); };
+  b.drawImage(groundTex(cv.width,cv.height,dpr,{eye,r3,u3,f3,F,ox,oy,st,fw,rt,dark,gshape,GRa,GRc}),0,0,W,H);
+  drawBoards(b,dpr,P,{eye,st,fw,rt,L,GM,GRa,GRc,dark});
   // far edge fades into the background
   const gr=ctx.green;
   // grid every 0.5 m, along the green's own axes
   const step=0.5;
   const corners=[wpt(A0,C0),wpt(A0,C1),wpt(A1,C0),wpt(A1,C1)];
   const gx0=Math.min(...corners.map(p=>p[0])), gx1=Math.max(...corners.map(p=>p[0])), gy0=Math.min(...corners.map(p=>p[1])), gy1=Math.max(...corners.map(p=>p[1]));
-  const near=(x,y)=>{ const dx=x-st.x, dy=y-st.y, a=dx*fw.x+dy*fw.y, c=dx*rt.x+dy*rt.y; return a>=A0&&a<=A1&&c>=C0&&c<=C1; };
-  b.strokeStyle="rgba(255,255,255,.17)"; b.lineWidth=1; b.beginPath();
+  const near=(x,y)=>{ const dx=x-st.x, dy=y-st.y, a=dx*fw.x+dy*fw.y, c=dx*rt.x+dy*rt.y; return a>=A0&&a<=A1&&c>=C0&&c<=C1&&gshape(a,c)<=0.97; };
+  b.strokeStyle="rgba(255,255,255,.16)"; b.lineWidth=1; b.beginPath();
   const xLines=[], yLines=[];
   for(let x=Math.ceil(gx0/step)*step; x<=gx1; x+=step){ xLines.push(x); }
   for(let y=Math.ceil(gy0/step)*step; y<=gy1; y+=step){ yLines.push(y); }
@@ -735,15 +818,25 @@ function drawGreen(){
   b.setLineDash([6,7]); b.strokeStyle="rgba(255,255,255,.6)"; b.lineWidth=1.6; b.beginPath(); gline(b,st.x,st.y,ho.x,ho.y); b.stroke(); b.setLineDash([]);
   const circ=(r,n)=>{ const pts=[]; for(let k=0;k<n;k++){ const t=k/n*Math.PI*2; pts.push([ho.x+r*Math.cos(t), ho.y+r*Math.sin(t)]); } return pts; };
   b.strokeStyle="rgba(255,255,255,.28)"; b.beginPath(); gpoly(b,circ(0.5,48)); b.closePath(); b.stroke();
-  { const hc=P(ho.x,ho.y,0); if(hc){ const dist=Math.hypot(ho.x-eye.x,ho.y-eye.y), rx=Math.max(4,F*HOLE_R*1.25/hc[2]), ry=rx*Math.max(0.22,EYE_H/Math.hypot(dist,EYE_H));
-    b.fillStyle="#0B1F14"; b.beginPath(); b.ellipse(hc[0],hc[1],rx,ry,0,0,7); b.fill(); } }
-  const pb=P(ho.x,ho.y,0), pt=P(ho.x,ho.y,0.9);
-  if(pb&&pt){ b.strokeStyle="#F4F6F2"; b.lineWidth=Math.max(1.5,F*0.012/pb[2]); b.beginPath(); b.moveTo(pb[0],pb[1]); b.lineTo(pt[0],pt[1]); b.stroke();
-    const fl2=P(ho.x+rt.x*0.32,ho.y+rt.y*0.32,0.8), fl3=P(ho.x,ho.y,0.7);
-    if(fl2&&fl3){ b.fillStyle="#F2C230"; b.beginPath(); b.moveTo(pt[0],pt[1]); b.lineTo(fl2[0],fl2[1]); b.lineTo(fl3[0],fl3[1]); b.fill(); } }
-  const ball=p=>{ const q=P(p.x,p.y,0.02); if(!q) return; const r=Math.max(2.5,F*0.0213*1.4/q[2]);
-    g.fillStyle="rgba(0,0,0,.25)"; g.beginPath(); g.ellipse(q[0]+r*0.25,q[1]+r*0.35,r,r*0.5,0,0,7); g.fill();
-    g.fillStyle="#FBFBF7"; g.beginPath(); g.arc(q[0],q[1]-r*0.3,r,0,7); g.fill(); g.strokeStyle="rgba(0,0,0,.3)"; g.lineWidth=1; g.stroke(); };
+  { const hc=P(ho.x,ho.y,0); if(hc){ const dist=Math.hypot(ho.x-eye.x,ho.y-eye.y), rx=Math.max(4,F*HOLE_R/hc[2]), ry=rx*Math.max(0.22,EYE_H/Math.hypot(dist,EYE_H));
+    b.save(); b.beginPath(); b.ellipse(hc[0],hc[1],rx,ry,0,0,7); b.clip();
+    b.fillStyle="#E9E6DA"; b.fillRect(hc[0]-rx,hc[1]-ry,rx*2,ry*2);                 // white cup liner (far wall)
+    b.fillStyle="#3A2E1E"; b.beginPath(); b.ellipse(hc[0],hc[1]+ry*0.30,rx,ry,0,0,7); b.fill();   // soil
+    b.fillStyle="#0E0B07"; b.beginPath(); b.ellipse(hc[0],hc[1]+ry*0.75,rx*1.02,ry,0,0,7); b.fill(); // depth
+    b.restore(); b.strokeStyle="rgba(20,30,15,.45)"; b.lineWidth=1; b.beginPath(); b.ellipse(hc[0],hc[1],rx,ry,0,0,7); b.stroke(); } }
+  const pb=P(ho.x,ho.y,0), pt=P(ho.x,ho.y,2.1);
+  if(pb&&pt){ const sun={x:rt.x*0.55-fw.x*0.35, y:rt.y*0.55-fw.y*0.35};
+    const sh=P(ho.x+sun.x*1.4,ho.y+sun.y*1.4,0); if(sh){ b.strokeStyle="rgba(0,20,0,.20)"; b.lineWidth=Math.max(1.2,F*0.012/pb[2]); b.beginPath(); b.moveTo(pb[0],pb[1]); b.lineTo(sh[0],sh[1]); b.stroke(); }
+    const pw=Math.max(1.6,F*0.013/pb[2]);
+    b.strokeStyle="#9A9A92"; b.lineWidth=pw+1; b.beginPath(); b.moveTo(pb[0],pb[1]); b.lineTo(pt[0],pt[1]); b.stroke();
+    b.strokeStyle="#F7F7F2"; b.lineWidth=pw; b.beginPath(); b.moveTo(pb[0]-pw*0.2,pb[1]); b.lineTo(pt[0]-pw*0.2,pt[1]); b.stroke();
+    const fA=P(ho.x+rt.x*0.25,ho.y+rt.y*0.25,2.05), fB=P(ho.x+rt.x*0.50,ho.y+rt.y*0.50,1.98), fC=P(ho.x+rt.x*0.48,ho.y+rt.y*0.48,1.66), fD=P(ho.x+rt.x*0.24,ho.y+rt.y*0.24,1.72), fE=P(ho.x,ho.y,1.70);
+    if(fA&&fB&&fC&&fD&&fE){ const fg=b.createLinearGradient(pt[0],pt[1],fB[0],fB[1]); fg.addColorStop(0,"#C9221E"); fg.addColorStop(0.5,"#E53A2F"); fg.addColorStop(1,"#B81C18");
+      b.fillStyle=fg; b.beginPath(); b.moveTo(pt[0],pt[1]); b.quadraticCurveTo(fA[0],fA[1]-pw,fB[0],fB[1]); b.lineTo(fC[0],fC[1]); b.quadraticCurveTo(fD[0],fD[1]+pw,fE[0],fE[1]); b.closePath(); b.fill(); } }
+  const ball=p=>{ const q=P(p.x,p.y,0.0213); if(!q) return; const r=Math.max(2.5,F*0.0213/q[2]); const gq=P(p.x,p.y,0);
+    if(gq){ g.fillStyle="rgba(0,25,0,.30)"; g.beginPath(); g.ellipse(gq[0]+r*0.35,gq[1]+r*0.05,r*1.05,r*0.42,0,0,7); g.fill(); }
+    const bgr=g.createRadialGradient(q[0]-r*0.35,q[1]-r*0.4,r*0.1,q[0],q[1],r); bgr.addColorStop(0,"#FFFFFF"); bgr.addColorStop(0.6,"#F1F1EB"); bgr.addColorStop(1,"#C9CBC2");
+    g.fillStyle=bgr; g.beginPath(); g.arc(q[0],q[1],r,0,7); g.fill(); };
   // ---- beads that slide along the grid lines, downhill; steeper = faster ----
   const vW=0.04+gr.slope*0.32, vx=gr.down.x*vW, vy=gr.down.y*vW, beads=[];
   if(gr.slope>0.05){
@@ -903,7 +996,7 @@ function viewPracticeSetup(){
   <h2>Avant de jouer</h2>${setupTip()}`;
 }
 function firstPlayer(){
-  return `<div class="card stack" style="margin-top:6px"><h3>Bienvenue dans Putt Lab</h3><p class="muted">Ajoute ton prénom pour commencer. Tout reste sur ce téléphone.</p>
+  return `<div class="card stack" style="margin-top:6px"><h3>Bienvenue dans Pure Putting</h3><p class="muted">Ajoute ton prénom pour commencer. Tout reste sur ce téléphone.</p>
   <div class="row"><input type="text" id="firstname" class="grow" value="Benito" aria-label="Prénom"><button class="btn primary" data-act="addfirst">C'est parti</button></div></div>`;
 }
 function stat(arr){ if(!arr.length) return {m:null,sd:null}; const m=arr.reduce((a,b)=>a+b,0)/arr.length; const sd=Math.sqrt(arr.reduce((a,b)=>a+(b-m)**2,0)/arr.length); return {m,sd}; }
@@ -1048,7 +1141,7 @@ function onAct(e){
 document.querySelectorAll("#tabs button").forEach(b=>b.addEventListener("click",()=>{ S.tab=b.dataset.tab; S.last=null; render(); window.scrollTo(0,0); }));
 function exportData(){
   const blob=new Blob([JSON.stringify({app:"puttlab-lm",v:1,date:Date.now(),players:S.players,rounds:S.rounds,shots:S.shots,settings:S.settings})],{type:"application/json"});
-  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="puttlab-sauvegarde-"+new Date().toISOString().slice(0,10)+".json";
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="pure-putting-sauvegarde-"+new Date().toISOString().slice(0,10)+".json";
   document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },1000);
 }
 async function importData(file){
@@ -1057,7 +1150,7 @@ async function importData(file){
     const rs=new Set(S.rounds.map(r=>r.id)); (j.rounds||[]).forEach(r=>{ if(!rs.has(r.id)) S.rounds.push(r); });
     const ts=new Set(S.shots.map(s=>s.t)); (j.shots||[]).forEach(s=>{ if(!ts.has(s.t)) S.shots.push(s); });
     S.shots.sort((a,b)=>a.t-b.t); save(); render(); toast("Sauvegarde importée");
-  }catch(e){ toast("Ce fichier n'est pas une sauvegarde Putt Lab."); }
+  }catch(e){ toast("Ce fichier n'est pas une sauvegarde Pure Putting."); }
 }
 window.addEventListener("resize",()=>{ if($("#green")) drawGreen(); });
 document.addEventListener("visibilitychange",()=>{ if(document.hidden) camStop(); else if($("#green")) camStart(); });
