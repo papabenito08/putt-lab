@@ -1,6 +1,6 @@
 {
-  "name": "Pure Putting",
-  "short_name": "Pure Putting",
+  "name": "Square Face Putting",
+  "short_name": "Square Face",
   "description": "Launch monitor de putting : vitesse, direction, face, et parcours virtuel. Sans compte.",
   "lang": "fr",
   "start_url": "./",
