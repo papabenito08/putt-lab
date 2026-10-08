@@ -53,6 +53,11 @@ p{margin:0}
 .btn.flag{background:var(--flag);border-color:var(--flag);color:var(--flag-ink)}
 .btn.block{width:100%} .btn.big{min-height:60px;font-size:18px}
 .btn:disabled{opacity:.45;cursor:default}
+.aiminfo{display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;margin-top:-4px}
+.aiminfo .linkbtn{padding:4px}
+.aiminfo div{flex-basis:100%}
+#green{cursor:crosshair;touch-action:manipulation}
+.installcard{border-color:var(--green);margin-bottom:12px}
 .linkbtn{background:none;border:none;color:var(--muted);text-decoration:underline;padding:8px 4px;font-size:14px}
 .chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;font-weight:600;font-size:14px;min-height:40px}
 .chip[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:var(--surface)}
@@ -147,6 +152,24 @@ function curLang(){ const s=S.settings.lang; if(LANGS.includes(s)) return s;
   let n="en"; try{ n=String((navigator.languages&&navigator.languages[0])||navigator.language||"en").slice(0,2).toLowerCase(); }catch(e){}
   return LANGS.includes(n)?n:"en"; }
 const I18N={
+  "Touche le green pour choisir où viser.":["Tap the green to choose where to aim.", "Toca el green para elegir dónde apuntar.", "Tippe aufs Grün, um deinen Zielpunkt zu wählen."],
+  "Visée : {d} à gauche du trou":["Aim: {d} left of the hole", "Apunte: {d} a la izquierda del hoyo", "Ziel: {d} links vom Loch"],
+  "Visée : {d} à droite du trou":["Aim: {d} right of the hole", "Apunte: {d} a la derecha del hoyo", "Ziel: {d} rechts vom Loch"],
+  "Visée : plein trou":["Aim: straight at the hole", "Apunte: directo al hoyo", "Ziel: direkt aufs Loch"],
+  "Viser le trou":["Aim at the hole", "Apuntar al hoyo", "Aufs Loch zielen"],
+  "Putte toujours droit vers le centre du tapis : la balle partira vers ton point de visée.":["Always putt straight down the middle of your mat: the ball will start toward your aim point.", "Haz siempre el putt recto por el centro de la alfombra: la bola saldrá hacia tu punto de apunte.", "Putte immer gerade zur Mitte deiner Matte: Der Ball startet in Richtung deines Zielpunkts."],
+  "Ordre du golf : après le premier putt de chacun, c'est le plus loin du trou qui joue.":["Golf order: after everyone's first putt, the ball farthest from the hole plays next.", "Orden del golf: tras el primer putt de cada uno, juega el más alejado del hoyo.", "Golf-Reihenfolge: Nach dem ersten Putt aller spielt der Ball, der am weitesten vom Loch entfernt ist."],
+  "Installe l'appli sur ton téléphone":["Install the app on your phone", "Instala la app en tu teléfono", "Installiere die App auf deinem Handy"],
+  "Installer":["Install", "Instalar", "Installieren"],
+  "Sur iPhone : dans Safari, touche le bouton Partager puis « Sur l'écran d'accueil ».":["On iPhone: in Safari, tap the Share button, then “Add to Home Screen”.", "En iPhone: en Safari, toca el botón Compartir y luego «Añadir a pantalla de inicio».", "Auf dem iPhone: Tippe in Safari auf Teilen und dann auf „Zum Home-Bildschirm“."],
+  "Sur Android : dans Chrome, ouvre le menu ⋮ puis « Installer l'application ».":["On Android: in Chrome, open the ⋮ menu, then “Install app”.", "En Android: en Chrome, abre el menú ⋮ y luego «Instalar aplicación».", "Auf Android: Öffne in Chrome das Menü ⋮ und dann „App installieren“."],
+  "Elle s'ouvrira en plein écran et marchera même sans connexion.":["It will open full screen and work even offline.", "Se abrirá a pantalla completa y funcionará incluso sin conexión.", "Sie öffnet sich im Vollbild und funktioniert auch offline."],
+  "Plus tard":["Later", "Más tarde", "Später"],
+  "Partager l'appli":["Share the app", "Compartir la app", "App teilen"],
+  "Fais scanner ce code à tes amis, ou envoie-leur le lien :":["Let your friends scan this code, or send them the link:", "Haz que tus amigos escaneen este código o envíales el enlace:", "Lass deine Freunde diesen Code scannen oder schick ihnen den Link:"],
+  "Envoyer le lien":["Send the link", "Enviar el enlace", "Link senden"],
+  "Lien copié":["Link copied", "Enlace copiado", "Link kopiert"],
+  "Essaie Square Face Putting, l'appli d'entraînement au putting :":["Try Square Face Putting, the putting practice app:", "Prueba Square Face Putting, la app de entrenamiento de putt:", "Probier Square Face Putting, die App fürs Putt-Training:"],
   // navigation
   "Parcours":["Course","Recorrido","Runde"],
   "Entraînement":["Practice","Práctica","Training"],
@@ -783,7 +806,7 @@ function nextPlayer(R){
 }
 function roundCtx(){
   const R=S.round, h=R.holes[R.hi], st=holeState(R), pid=R.players[R.pi];
-  const others=R.players.filter(p=>p!==pid && !st[p].out).map(p=>({x:st[p].x,y:st[p].y,name:pname(p)}));
+  const others=R.players.filter(p=>p!==pid && !st[p].out && st[p].n>0).map(p=>({x:st[p].x,y:st[p].y,name:pname(p)}));
   return {hole:{x:0,y:h.D}, start:R.ball, green:h.green, pid, others};
 }
 function onShot(shot){
@@ -793,7 +816,9 @@ function onShot(shot){
   if(S.tab==="play" && S.round && !S.round.done){ ctx=roundCtx(); mode="parcours"; shot.p=ctx.pid; }
   else if(S.tab==="practice"){ const P=S.practice; ctx={hole:{x:0,y:P.D}, start:{x:0,y:0}, green:P.green}; mode="entrainement"; shot.p=S.practiceP||null; }
   else return;
-  const sim=simulate(ctx.start, ctx.hole, shot.v, shot.dir, ctx.green);
+  const apt=aimPtFor(ctx), aimD=aimDegFor(ctx,apt); ctx.aimPt=apt?{x:apt.x,y:apt.y}:null;
+  if(aimD) shot.aim=Math.round(aimD*100)/100;
+  const sim=simulate(ctx.start, ctx.hole, shot.v, shot.dir+aimD, ctx.green);
   shot.mode=mode; shot.D=Math.hypot(ctx.hole.x-ctx.start.x,ctx.hole.y-ctx.start.y); shot.holed=sim.holed; shot.rest=sim.rest; shot.along=sim.along; shot.lat=sim.lat;
   S.shots.push(shot);
   S.last={shot, sim, ctx, anim:performance.now()};
@@ -952,6 +977,18 @@ async function playCup(){
 
 /* =================== green rendering =================== */
 let greenRAF=0;
+/* Aim point chosen by touching the green: the player always putts straight down the mat,
+   the virtual ball starts toward that point instead of the hole. Kept per position (start, hole, green, player). */
+function aimKey(c){ return [c.start.x,c.start.y,c.hole.x,c.hole.y,c.green.slope,c.green.down.x,c.green.down.y].map(v=>(+v).toFixed(3)).join(",")+"|"+(c.pid||""); }
+function aimPtFor(c){ return (c && S.aimPt && S.aimPt.k===aimKey(c)) ? S.aimPt : null; }
+/* Angle (deg, + = right) between the line to the hole and the line to the aim point. */
+function aimDegFor(c, pt){ pt = pt || aimPtFor(c); if(!pt) return 0;
+  const dx=c.hole.x-c.start.x, dy=c.hole.y-c.start.y, L=Math.hypot(dx,dy)||1, u={x:dx/L,y:dy/L}, r={x:u.y,y:-u.x};
+  const vx=pt.x-c.start.x, vy=pt.y-c.start.y; return Math.atan2(vx*r.x+vy*r.y, vx*u.x+vy*u.y)*180/Math.PI; }
+function aimText(c){ const pt=aimPtFor(c); if(!pt) return t("Touche le green pour choisir où viser.");
+  const L=Math.hypot(c.hole.x-c.start.x,c.hole.y-c.start.y), off=L*Math.tan(aimDegFor(c,pt)*Math.PI/180);
+  if(Math.abs(off)<0.005) return t("Visée : plein trou");
+  return t(off>0?"Visée : {d} à droite du trou":"Visée : {d} à gauche du trou",{d:fmtM(Math.abs(off))}); }
 function curCtx(){
   if(S.tab==="play"){ if(!S.round||S.round.done) return null; return roundCtx(); }
   if(S.tab==="practice"&&S.practice) return {hole:{x:0,y:S.practice.D},start:{x:0,y:0},green:S.practice.green};
@@ -1104,7 +1141,13 @@ function drawGreen(){
   for(const y of yLines) clipLine((a,b_,c,d)=>gline(b,a,b_,c,d), gx0,y,gx1,y);
   b.stroke();
   // aim line, 50 cm ring, hole, flag
-  b.setLineDash([6,7]); b.strokeStyle="rgba(255,255,255,.6)"; b.lineWidth=1.6; b.beginPath(); gline(b,st.x,st.y,ho.x,ho.y); b.stroke(); b.setLineDash([]);
+  const apt = last ? last.ctx.aimPt : aimPtFor(ctx);
+  b.setLineDash([6,7]); b.strokeStyle=apt?"rgba(255,255,255,.28)":"rgba(255,255,255,.6)"; b.lineWidth=1.6; b.beginPath(); gline(b,st.x,st.y,ho.x,ho.y); b.stroke(); b.setLineDash([]);
+  if(apt){ // chosen aim point: yellow line from the ball, target on the ground
+    b.setLineDash([7,6]); b.strokeStyle="rgba(255,214,64,.95)"; b.lineWidth=2; b.beginPath(); gline(b,st.x,st.y,apt.x,apt.y); b.stroke(); b.setLineDash([]);
+    const ring=(r,n)=>{ const pts=[]; for(let k=0;k<n;k++){ const a=k/n*Math.PI*2; pts.push([apt.x+r*Math.cos(a), apt.y+r*Math.sin(a)]); } return pts; };
+    b.lineWidth=2.2; b.strokeStyle="rgba(255,214,64,.95)"; b.beginPath(); gpoly(b,ring(0.09,28)); b.closePath(); b.stroke();
+    b.lineWidth=1.6; b.beginPath(); gline(b,apt.x-rt.x*0.16,apt.y-rt.y*0.16,apt.x+rt.x*0.16,apt.y+rt.y*0.16); gline(b,apt.x-fw.x*0.16,apt.y-fw.y*0.16,apt.x+fw.x*0.16,apt.y+fw.y*0.16); b.stroke(); }
   const circ=(r,n)=>{ const pts=[]; for(let k=0;k<n;k++){ const t=k/n*Math.PI*2; pts.push([ho.x+r*Math.cos(t), ho.y+r*Math.sin(t)]); } return pts; };
   b.strokeStyle="rgba(255,255,255,.28)"; b.beginPath(); gpoly(b,circ(0.5,48)); b.closePath(); b.stroke();
   { const hc=P(ho.x,ho.y,0); if(hc){ const dist=Math.hypot(ho.x-eye.x,ho.y-eye.y), rx=Math.max(4,F*HOLE_R/hc[2]), ry=rx*Math.max(0.22,EYE_H/Math.hypot(dist,EYE_H));
@@ -1162,6 +1205,14 @@ function drawGreen(){
     if(!(end&&last.sim.holed)) ball(q);
     return end;
   };
+  // touch the green to choose the aim point (not while a putt is rolling); touch near the hole to aim at it again
+  cv.onclick = e => { if(S.last) return; const c0=curCtx(); if(!c0) return;
+    const rc=cv.getBoundingClientRect(), sx=(e.clientX-rc.left)*W/rc.width, sy=(e.clientY-rc.top)*H/rc.height;
+    const a=(sx-ox)/F, bb=(oy-sy)/F, d={x:r3.x*a+u3.x*bb+f3.x, y:r3.y*a+u3.y*bb+f3.y, z:r3.z*a+u3.z*bb+f3.z};
+    if(d.z>=-1e-4) return; const k=-eye.z/d.z, wx=eye.x+d.x*k, wy=eye.y+d.y*k;
+    const along=(wx-st.x)*fw.x+(wy-st.y)*fw.y; if(along<0.3) return;
+    if(Math.hypot(wx-ho.x,wy-ho.y)<0.12) S.aimPt=null; else S.aimPt={k:aimKey(c0), x:wx, y:wy};
+    refreshAimInfo(c0); drawGreen(); };
   const tick=()=>{
     if(!cv.isConnected) return;
     if(!last) paint(0);
@@ -1210,6 +1261,9 @@ function numsHtml(sh){
     <div class="num"><span>${t("Face")}</span><b>${sh?dirTxt(sh.face):"–"}</b><small>${t(sh?(sh.faceMeasured?"mesurée":"estimée"):"à l'impact")}</small></div>
     <div class="num"><span>${t("Distance")}</span><b>${sh?nf(sh.flat,1):"–"}</b><small>${t("m à plat")}</small></div></div>`;
 }
+function aimInfoHtml(c){ const on=!!aimPtFor(c);
+  return `<span class="small ${on?"":"muted"}">${on?"🎯 ":""}${esc(aimText(c))}</span>${on?` <button class="linkbtn" data-act="aimreset">${t("Viser le trou")}</button>`:""}${on?`<div class="small muted">${t("Putte toujours droit vers le centre du tapis : la balle partira vers ton point de visée.")}</div>`:""}`; }
+function refreshAimInfo(c){ const ai=$("#aiminfo"); if(!ai||!c) return; ai.innerHTML=aimInfoHtml(c); ai.querySelectorAll("[data-act]").forEach(x=>x.addEventListener("click",onAct)); }
 function viewLive(){
   let head="", ctx;
   const shot = S.last ? S.last.shot : (S.lastShotShown||null);
@@ -1228,6 +1282,7 @@ function viewLive(){
       <p class="small muted">${t(S.settings.calib?"Pose la balle dans le cercle pointillé. Touche-la pour la repérer à nouveau.":"<b>Touche la balle sur l'image</b> pour que l'appli la repère.")}</p>
       <div class="row"><button class="btn grow" data-act="togglecam">${t("Voir le green")}</button>${S.settings.calib?`<button class="btn grow" data-act="recalib">${t("Oublier la balle")}</button>`:""}</div></div>`:""}
     <div class="greenwrap"><canvas id="green" aria-label="${esc(t("Green virtuel"))}"></canvas><div id="verdict" class="verdict"></div>${!S.settings.testMode&&!S.camLarge?`<div id="camslot" class="inset" title="${esc(t("Agrandir la caméra"))}"></div>`:""}</div>
+    <div id="aiminfo" class="aiminfo">${aimInfoHtml(ctx)}</div>
     ${numsHtml(S.last?S.last.shot:null)}
     ${impactHtml()}`;
   if(S.settings.testMode){
@@ -1270,12 +1325,12 @@ function setupTip(){
     <li>${t("Balle blanche, tapis uni, bonne lumière, sans objet blanc près de la balle.")}</li></ul></div>`;
 }
 function viewPlaySetup(){
-  if(!S.players.length) return firstPlayer();
+  if(!S.players.length) return installBanner()+firstPlayer();
   S.setupP = S.setupP && S.setupP.length ? S.setupP.filter(id=>S.players.some(p=>p.id===id)) : [S.players[0].id];
   S.setupN = S.setupN||9;
-  return `<h2 style="margin-top:4px">${t("Parcours de putting")}</h2>
+  return `${installBanner()}<h2 style="margin-top:4px">${t("Parcours de putting")}</h2>
   <p class="muted" style="margin-bottom:12px">${t("Chaque trou a une distance et une pente différentes. Tu puttes pour de vrai sur ton tapis, la balle virtuelle roule sur le green. Par 2 par trou.")}</p>
-  <div class="card stack"><h3>${t("Joueurs")}</h3>${playersPicker(S.setupP,"setupplayer")}<p class="small muted">${t(S.setupP.length>1?"Chacun termine le trou avant le joueur suivant.":"Ajoute des joueurs dans Réglages pour jouer à plusieurs.")}</p>
+  <div class="card stack"><h3>${t("Joueurs")}</h3>${playersPicker(S.setupP,"setupplayer")}<p class="small muted">${t(S.setupP.length>1?"Ordre du golf : après le premier putt de chacun, c'est le plus loin du trou qui joue.":"Ajoute des joueurs dans Réglages pour jouer à plusieurs.")}</p>
   <h3 style="margin-top:6px">${t("Nombre de trous")}</h3><div class="row">${[3,9,18].map(n=>`<button class="chip" data-act="setn" data-n="${n}" aria-pressed="${S.setupN===n}">${t("{n} trous",{n})}</button>`).join("")}</div></div>
   <button class="btn primary block big" style="margin-top:14px" data-act="startround" ${S.setupP.length?"":"disabled"}>${t("Commencer la partie")}</button>
   <h2>${t("Avant de jouer")}</h2>${setupTip()}`;
@@ -1290,6 +1345,33 @@ function viewPracticeSetup(){
   ${S.players.length>1?`<h3 style="margin-top:6px">${t("Qui s'entraîne ?")}</h3>${playersPicker([S.practiceP||S.players[0].id],"practicep")}`:""}</div>
   <button class="btn primary block big" style="margin-top:14px" data-act="startpractice">${t("Démarrer")}</button>
   <h2>${t("Avant de jouer")}</h2>${setupTip()}`;
+}
+/* ---- install & share (before the app is in the stores, friends install it from the web page) ---- */
+let INSTALL_EVT=null;
+const APP_URL = (()=>{ try{ return new URL("./", location.href).href; }catch(e){ return location.href; } })();
+const isInstalled = () => { try{ return matchMedia("(display-mode: standalone)").matches || navigator.standalone===true; }catch(e){ return false; } };
+const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); INSTALL_EVT=e; if(S.tab==="play" && !S.round) render(); });
+window.addEventListener("appinstalled", () => { INSTALL_EVT=null; if(S.tab==="play" && !S.round) render(); });
+function installBanner(){
+  if(isInstalled() || S.settings.hideInstall) return "";
+  const how = INSTALL_EVT ? `<button class="btn primary" data-act="install">${t("Installer")}</button>`
+    : `<p class="small">${t(isIOS()?"Sur iPhone : dans Safari, touche le bouton Partager puis « Sur l'écran d'accueil ».":"Sur Android : dans Chrome, ouvre le menu ⋮ puis « Installer l'application ».")}</p>`;
+  return `<div class="card stack installcard"><h3>📲 ${t("Installe l'appli sur ton téléphone")}</h3>${how}
+    <p class="small muted">${t("Elle s'ouvrira en plein écran et marchera même sans connexion.")}</p>
+    <div><button class="linkbtn" data-act="hideinstall">${t("Plus tard")}</button></div></div>`;
+}
+function shareCard(){
+  return `<div class="card stack"><h3>${t("Partager l'appli")}</h3>
+    <p class="small muted">${t("Fais scanner ce code à tes amis, ou envoie-leur le lien :")}</p>
+    <img src="qr.png" alt="QR code" width="180" height="180" style="align-self:center;border-radius:10px;background:#fff;padding:6px">
+    <p class="small" style="text-align:center;word-break:break-all"><b>${esc(APP_URL)}</b></p>
+    <button class="btn block" data-act="shareapp">${t("Envoyer le lien")}</button></div>`;
+}
+async function shareApp(){
+  const text=t("Essaie Square Face Putting, l'appli d'entraînement au putting :");
+  try{ if(navigator.share){ await navigator.share({title:"Square Face Putting", text, url:APP_URL}); return; } }catch(e){ if(e&&e.name==="AbortError") return; }
+  try{ await navigator.clipboard.writeText(APP_URL); toast(t("Lien copié")); }catch(e){ prompt("", APP_URL); }
 }
 function firstPlayer(){
   return `<div class="card stack" style="margin-top:6px"><h3>${t("Bienvenue dans Square Face Putting")}</h3><p class="muted">${t("Ajoute ton prénom pour commencer. Tout reste sur ce téléphone.")}</p>
@@ -1330,6 +1412,7 @@ function viewSettings(){
   <div class="card stack"><h3>${t("Langue")}</h3><div class="row">
     ${[["auto",t("Automatique")],["fr","Français"],["en","English"],["es","Español"],["de","Deutsch"]].map(([v,l])=>`<button class="chip" data-act="lang" data-v="${v}" aria-pressed="${lg===v}"${v!=="auto"?` lang="${v}"`:""}>${esc(l)}</button>`).join("")}</div>
     <p class="small muted">${t("La langue s'applique aussi aux annonces vocales. Automatique : celle du téléphone.")}</p></div>
+  ${shareCard()}
   <div class="card stack"><h3>${t("Vitesse du green (Stimp)")}</h3><div class="stepper"><button data-act="stimp" data-v="-0.5" aria-label="${esc(t("Moins rapide"))}">−</button><b>${nf(st.stimp,1)}</b><button data-act="stimp" data-v="0.5" aria-label="${esc(t("Plus rapide"))}">+</button></div>
     <p class="small muted">${t("8 = green lent, 10 = moyen, 12 = rapide. Sert à calculer la distance parcourue.")}</p></div>
   <div class="card stack"><h3>${t("Sens du putt sur l'image")}</h3><div class="row">
@@ -1415,6 +1498,10 @@ function onAct(e){
     case "pslope": st.practiceSlope=el.dataset.v; save(); render(); break;
     case "practicep": S.practiceP=el.dataset.id; render(); break;
     case "startpractice": if(!st.calib) S.camLarge=true; S.practice={D:st.practiceD, green:newGreen(Math.random, st.practiceSlope==="flat")}; if(!S.practiceP) S.practiceP=S.players[0].id; S.last=null; render(); break;
+    case "install": if(INSTALL_EVT){ const ev=INSTALL_EVT; INSTALL_EVT=null; ev.prompt(); ev.userChoice.finally(()=>render()); } break;
+    case "hideinstall": st.hideInstall=true; save(); render(); break;
+    case "shareapp": shareApp(); break;
+    case "aimreset": S.aimPt=null; refreshAimInfo(curCtx()); drawGreen(); break;
     case "newgreen": S.practice.green=newGreen(Math.random, st.practiceSlope==="flat"); S.last=null; render(); break;
     case "quitpractice": S.practice=null; S.last=null; S.lastImpact=null; render(); break;
     case "togglecam": S.camLarge=!S.camLarge; render(); break;
